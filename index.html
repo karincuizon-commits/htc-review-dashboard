@@ -392,3 +392,10 @@ renderAll();
 </script>
 </body>
 </html>
+<script type="module">
+import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
+const sb=createClient('https://nibvlmriymjlauzklnbh.supabase.co','sb_publishable_-OLUMh-8YwntFR4xl6GFUA_wKHP-oW0');
+const {data:{session}}=await sb.auth.getSession();
+if(!session){document.body.innerHTML='<main style="max-width:520px;margin:10vh auto;font:16px system-ui"><h1>HTC Performance Review</h1><p>Sign in to access the dashboard.</p><input id="e" placeholder="Email" type="email"><input id="p" placeholder="Password" type="password"><button id="in">Sign in</button><p id="m"></p></main>';document.querySelector('#in').onclick=async()=>{let r=await sb.auth.signInWithPassword({email:e.value,password:p.value});m.textContent=r.error?r.error.message:'Signed in. Reloading…';if(!r.error)location.reload()};}
+else{const{data:me}=await sb.from('profiles').select('role').eq('id',session.user.id).single();if(me?.role==='executive'){const box=document.createElement('section');box.style='max-width:960px;margin:18px auto;padding:18px;border:1px solid #ddd;background:#fff';box.innerHTML='<h2>Executive administration</h2><p>Invite a team member and assign their access level.</p><input id="inviteEmail" placeholder="Team member email" type="email"><select id="inviteRole"><option value="employee">Employee</option><option value="manager">Manager</option><option value="executive">Executive</option></select><button id="invite">Send invite</button><span id="inviteMsg"></span>';document.querySelector('main').before(box);box.querySelector('#invite').onclick=async()=>{const r=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({email:inviteEmail.value,role:inviteRole.value})});const d=await r.json();inviteMsg.textContent=d.ok?' Invitation sent.':(' '+d.error)}}}
+</script>
