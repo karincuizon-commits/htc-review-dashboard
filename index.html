@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 Performance Review — Coaching Dashboard</title>
+<style>
+:root{
+  --color-background-primary:#ffffff;
+  --color-background-secondary:#f5f4f0;
+  --color-background-tertiary:#faf9f6;
+  --color-background-info:#e6f1fb;
+  --color-background-success:#eaf3de;
+  --color-background-warning:#faeeda;
+  --color-text-primary:#1a1a1a;
+  --color-text-secondary:#5f5e5a;
+  --color-text-tertiary:#888780;
+  --color-text-info:#0c447c;
+  --color-text-success:#27500a;
+  --color-text-warning:#633806;
+  --color-border-tertiary:rgba(0,0,0,0.12);
+  --color-border-info:#378ADD;
+  --radius-md:8px;
+  --radius-lg:12px;
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --color-background-primary:#1e1e1c;
+    --color-background-secondary:#2a2a27;
+    --color-background-tertiary:#161615;
+    --color-background-info:#0c447c;
+    --color-background-success:#27500a;
+    --color-background-warning:#633806;
+    --color-text-primary:#f1efe8;
+    --color-text-secondary:#b4b2a9;
+    --color-text-tertiary:#888780;
+    --color-text-info:#b5d4f4;
+    --color-text-success:#c0dd97;
+    --color-text-warning:#fac775;
+    --color-border-tertiary:rgba(255,255,255,0.15);
+    --color-border-info:#85b7eb;
+  }
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--color-background-tertiary);
+  color:var(--color-text-primary);
+  font-family:var(--font-sans);
+  padding:2.5rem 1.25rem 4rem;
+}
+.wrap{max-width:760px;margin:0 auto;}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:2rem;flex-wrap:wrap;}
+.page-header h1{font-size:21px;font-weight:600;margin:0 0 4px;}
+.page-header p{font-size:13px;color:var(--color-text-secondary);margin:0;}
+.section-label{font-size:13px;color:var(--color-text-secondary);margin-bottom:8px;}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;}
+button{
+  font-family:inherit;font-size:13px;background:var(--color-background-primary);
+  border:1px solid var(--color-border-tertiary);border-radius:var(--radius-md);
+  padding:7px 12px;cursor:pointer;color:var(--color-text-primary);
+}
+button:hover{background:var(--color-background-secondary);}
+button:active{transform:scale(0.98);}
+select,input[type=text]{
+  font-family:inherit;font-size:13px;border:1px solid var(--color-border-tertiary);
+  border-radius:var(--radius-md);padding:7px 10px;background:var(--color-background-primary);
+  color:var(--color-text-primary);
+}
+select:focus,input[type=text]:focus{outline:2px solid var(--color-border-info);outline-offset:1px;}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;padding:3px 9px;border-radius:var(--radius-md);white-space:nowrap;}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:1.75rem;}
+.metric-card{background:var(--color-background-secondary);border-radius:var(--radius-md);padding:1rem;}
+.metric-card .label{font-size:13px;color:var(--color-text-secondary);margin-bottom:4px;}
+.metric-card .value{font-size:24px;font-weight:500;}
+.timeline{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:2rem;}
+@media (max-width:560px){.timeline{grid-template-columns:1fr;}}
+.phase-card{background:var(--color-background-primary);border-radius:var(--radius-lg);padding:0.9rem 1rem;}
+.phase-card .ptitle{font-weight:500;font-size:14px;margin-bottom:4px;}
+.phase-card .pdates{font-size:12px;color:var(--color-text-secondary);margin-bottom:10px;}
+.dept-card{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:12px;}
+.dept-card-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:8px;flex-wrap:wrap;}
+.dept-name{font-weight:500;font-size:15px;}
+.dept-owner{font-size:12px;color:var(--color-text-secondary);}
+.progress-track{height:6px;border-radius:4px;background:var(--color-background-secondary);overflow:hidden;width:120px;}
+.progress-fill{height:100%;background:var(--color-text-success);}
+.member-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--color-border-tertiary);flex-wrap:wrap;}
+.member-name{flex:1;font-size:13px;min-width:90px;}
+.remove-btn{color:var(--color-text-tertiary);border-color:transparent;background:none;padding:4px 8px;}
+.remove-btn:hover{color:var(--color-text-warning);background:var(--color-background-secondary);}
+.add-row{display:flex;gap:8px;margin-top:10px;}
+.add-row input{flex:1;}
+#chart-empty{display:none;font-size:13px;color:var(--color-text-tertiary);padding:2rem 0;text-align:center;}
+#chart-wrap{position:relative;width:100%;height:260px;}
+.reset-link{font-size:12px;color:var(--color-text-tertiary);background:none;border:none;text-decoration:underline;cursor:pointer;padding:0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="page-header">
+    <div>
+      <h1>2026 performance review — coaching dashboard</h1>
+      <p>Share &#8594; conduct &#8594; calibrate, tracked by department</p>
+    </div>
+    <button id="reset-btn" class="reset-link" style="border:none;background:none;">Reset all data</button>
+  </div>
+
+  <h2 class="sr-only">Performance review dashboard: tracks the share, conduct, and calibration timeline, completion status by department, and average ratings for calibration</h2>
+
+  <div id="metrics" class="metrics"></div>
+
+  <div class="section-label">Review timeline</div>
+  <div id="timeline" class="timeline"></div>
+
+  <div class="section-label">Department tracker</div>
+  <div id="dept-section"></div>
+
+  <div class="section-label">Calibration — average overall rating by department</div>
+  <div id="chart-empty">No ratings submitted yet — this fills in as managers mark members "Submitted" and enter a rating.</div>
+  <div id="chart-wrap">
+    <canvas id="ratingsChart" role="img" aria-label="Bar chart of average overall rating by department"></canvas>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+(function(){
+var STORAGE_KEY='htc-review-2026';
+
+var STATUS_META={
+  not_started:{label:'Not started'},
+  shared:{label:'Form shared'},
+  in_progress:{label:'In progress'},
+  submitted:{label:'Submitted'}
+};
+var RATING_LABELS={1:'1 - Unsatisfactory',2:'2 - Needs improvement',3:'3 - Meets expectations',4:'4 - Exceeds expectations',5:'5 - Always exceeds'};
+
+function defaultState(){
+  return {departments:[
+    {name:'Operations',owner:'James',members:[]},
+    {name:'Purchasing',owner:'Anthony & Te-Amo',members:[]},
+    {name:'Marketing',owner:'Karin',members:[]},
+    {name:'Finance',owner:'Ly',members:[]},
+    {name:'Office',owner:'Tram',members:[]}
+  ]};
+}
+
+var state=null;
+var chartInstance=null;
+
+function uid(){return 'm'+Math.random().toString(36).slice(2,9);}
+
+function loadState(){
+  try{
+    var raw=localStorage.getItem(STORAGE_KEY);
+    if(raw)return JSON.parse(raw);
+  }catch(e){}
+  return defaultState();
+}
+function saveState(){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}
+}
+
+function dayMidnight(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
+
+function getPhases(){
+  var today=dayMidnight(new Date());
+  var d1=new Date(2026,5,24);
+  var d2s=new Date(2026,5,29),d2e=new Date(2026,6,10);
+  var d3s=new Date(2026,6,13),d3e=new Date(2026,6,17);
+  var p1,p2,p3;
+  if(today<=d1){p1='current';p2='upcoming';p3='upcoming';}
+  else if(today<d2s){p1='done';p2='upcoming';p3='upcoming';}
+  else if(today<=d2e){p1='done';p2='current';p3='upcoming';}
+  else if(today<d3s){p1='done';p2='done';p3='upcoming';}
+  else if(today<=d3e){p1='done';p2='done';p3='current';}
+  else{p1='done';p2='done';p3='done';}
+  return [
+    {title:'Share the form',dates:'Wed 24 June',status:p1},
+    {title:'Conduct reviews',dates:'29 June &#8211; 10 July',status:p2},
+    {title:'Calibration',dates:'13 &#8211; 17 July',status:p3}
+  ];
+}
+
+function currentPhaseLabel(phases){
+  var cur=phases.find(function(p){return p.status==='current';});
+  if(cur)return cur.title;
+  if(phases.every(function(p){return p.status==='done';}))return 'Complete';
+  return 'Between phases';
+}
+
+function metricCard(label,value){
+  return '<div class="metric-card"><div class="label">'+label+'</div><div class="value">'+value+'</div></div>';
+}
+
+function renderMetrics(){
+  var total=0,submitted=0;
+  state.departments.forEach(function(d){
+    total+=d.members.length;
+    d.members.forEach(function(m){if(m.status==='submitted')submitted++;});
+  });
+  var pct=total?Math.round(submitted/total*100):0;
+  var phases=getPhases();
+  document.getElementById('metrics').innerHTML=
+    metricCard('Team members',total)+
+    metricCard('Reviews submitted',submitted)+
+    metricCard('Completion',pct+'%')+
+    metricCard('Current phase',currentPhaseLabel(phases));
+}
+
+function phaseCard(p){
+  var bg,color,text;
+  if(p.status==='done'){bg='var(--color-background-success)';color='var(--color-text-success)';text='Done';}
+  else if(p.status==='current'){bg='var(--color-background-info)';color='var(--color-text-info)';text='Current';}
+  else{bg='var(--color-background-secondary)';color='var(--color-text-secondary)';text='Upcoming';}
+  var border=p.status==='current'?'2px solid var(--color-border-info)':'1px solid var(--color-border-tertiary)';
+  return '<div class="phase-card" style="border:'+border+';">'+
+    '<div class="ptitle">'+p.title+'</div>'+
+    '<div class="pdates">'+p.dates+'</div>'+
+    '<span class="badge" style="background:'+bg+';color:'+color+';">'+text+'</span>'+
+    '</div>';
+}
+
+function renderTimeline(){
+  document.getElementById('timeline').innerHTML=getPhases().map(phaseCard).join('');
+}
+
+function ratingSelect(deptIdx,member){
+  var opts=[1,2,3,4,5].map(function(v){
+    return '<option value="'+v+'"'+(member.rating===v?' selected':'')+'>'+RATING_LABELS[v]+'</option>';
+  }).join('');
+  return '<select data-action="rating-change" data-dept="'+deptIdx+'" data-member="'+member.id+'" style="min-width:180px;">'+
+    '<option value="">Rating&#8230;</option>'+opts+'</select>';
+}
+
+function statusSelect(deptIdx,member){
+  return '<select data-action="status-change" data-dept="'+deptIdx+'" data-member="'+member.id+'" style="min-width:130px;">'+
+    Object.keys(STATUS_META).map(function(k){
+      return '<option value="'+k+'"'+(member.status===k?' selected':'')+'>'+STATUS_META[k].label+'</option>';
+    }).join('')+'</select>';
+}
+
+function memberRow(deptIdx,member){
+  return '<div class="member-row">'+
+    '<span class="member-name">'+member.name+'</span>'+
+    statusSelect(deptIdx,member)+
+    (member.status==='submitted'?ratingSelect(deptIdx,member):'')+
+    '<button class="remove-btn" data-action="remove-member" data-dept="'+deptIdx+'" data-member="'+member.id+'" aria-label="Remove '+member.name+'">Remove</button>'+
+    '</div>';
+}
+
+function deptCard(d,i){
+  var total=d.members.length;
+  var submitted=d.members.filter(function(m){return m.status==='submitted';}).length;
+  var pct=total?Math.round(submitted/total*100):0;
+  return '<div class="dept-card">'+
+    '<div class="dept-card-head">'+
+      '<div><div class="dept-name">'+d.name+'</div><div class="dept-owner">Owner: '+d.owner+'</div></div>'+
+      '<div style="text-align:right;min-width:120px;">'+
+        '<div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:4px;">'+submitted+' / '+total+' submitted</div>'+
+        '<div class="progress-track"><div class="progress-fill" style="width:'+pct+'%;"></div></div>'+
+      '</div>'+
+    '</div>'+
+    d.members.map(function(m){return memberRow(i,m);}).join('')+
+    '<div class="add-row">'+
+      '<input type="text" data-add-input="'+i+'" placeholder="Add team member">'+
+      '<button data-action="add-member" data-dept="'+i+'">+ Add</button>'+
+    '</div>'+
+    '</div>';
+}
+
+function renderDepartments(){
+  document.getElementById('dept-section').innerHTML=state.departments.map(deptCard).join('');
+}
+
+function renderChart(){
+  var labels=[],data=[];
+  state.departments.forEach(function(d){
+    var rated=d.members.filter(function(m){return m.status==='submitted'&&m.rating;});
+    if(rated.length){
+      var avg=rated.reduce(function(s,m){return s+m.rating;},0)/rated.length;
+      labels.push(d.name);
+      data.push(Math.round(avg*10)/10);
+    }
+  });
+  var emptyEl=document.getElementById('chart-empty');
+  var wrapEl=document.getElementById('chart-wrap');
+  if(!labels.length){
+    emptyEl.style.display='block';
+    wrapEl.style.display='none';
+    return;
+  }
+  emptyEl.style.display='none';
+  wrapEl.style.display='block';
+  var canvas=document.getElementById('ratingsChart');
+  canvas.setAttribute('aria-label','Average overall rating by department: '+labels.map(function(l,idx){return l+' '+data[idx];}).join(', '));
+  if(chartInstance)chartInstance.destroy();
+  chartInstance=new Chart(canvas,{
+    type:'bar',
+    data:{labels:labels,datasets:[{label:'Avg overall rating',data:data,backgroundColor:'#378ADD'}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{y:{min:0,max:5,ticks:{stepSize:1}}}
+    }
+  });
+}
+
+function renderAll(){
+  renderMetrics();
+  renderTimeline();
+  renderDepartments();
+  renderChart();
+}
+
+function findMember(deptIdx,memberId){
+  var d=state.departments[deptIdx];
+  return d.members.find(function(m){return m.id===memberId;});
+}
+
+document.addEventListener('click',function(e){
+  var addBtn=e.target.closest('[data-action="add-member"]');
+  if(addBtn){
+    var idx=parseInt(addBtn.getAttribute('data-dept'),10);
+    var input=document.querySelector('[data-add-input="'+idx+'"]');
+    var name=input.value.trim();
+    if(name){
+      state.departments[idx].members.push({id:uid(),name:name,status:'not_started',rating:null});
+      saveState();
+      renderAll();
+    }
+    return;
+  }
+  var rmBtn=e.target.closest('[data-action="remove-member"]');
+  if(rmBtn){
+    var dIdx=parseInt(rmBtn.getAttribute('data-dept'),10);
+    var mId=rmBtn.getAttribute('data-member');
+    var dept=state.departments[dIdx];
+    dept.members=dept.members.filter(function(m){return m.id!==mId;});
+    saveState();
+    renderAll();
+    return;
+  }
+  if(e.target.id==='reset-btn'){
+    if(confirm('Reset all department and rating data? This cannot be undone.')){
+      state=defaultState();
+      saveState();
+      renderAll();
+    }
+    return;
+  }
+});
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&e.target.matches('[data-add-input]')){
+    var idx=parseInt(e.target.getAttribute('data-add-input'),10);
+    var btn=document.querySelector('[data-action="add-member"][data-dept="'+idx+'"]');
+    if(btn)btn.click();
+  }
+});
+
+document.addEventListener('change',function(e){
+  var sel=e.target.closest('[data-action="status-change"]');
+  if(sel){
+    var dIdx=parseInt(sel.getAttribute('data-dept'),10);
+    var mId=sel.getAttribute('data-member');
+    var member=findMember(dIdx,mId);
+    member.status=sel.value;
+    if(sel.value!=='submitted')member.rating=null;
+    saveState();
+    renderAll();
+    return;
+  }
+  var rsel=e.target.closest('[data-action="rating-change"]');
+  if(rsel){
+    var dIdx2=parseInt(rsel.getAttribute('data-dept'),10);
+    var mId2=rsel.getAttribute('data-member');
+    var member2=findMember(dIdx2,mId2);
+    member2.rating=rsel.value?parseInt(rsel.value,10):null;
+    saveState();
+    renderAll();
+    return;
+  }
+});
+
+state=loadState();
+renderAll();
+})();
+</script>
+</body>
+</html>
