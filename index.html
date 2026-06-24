@@ -1,36 +1,394 @@
-﻿<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>HTC Performance Review</title><style>body{margin:0;background:#f8f7f3;color:#222;font:15px system-ui,sans-serif}header{background:#202020;color:#fff;padding:14px 5%;display:flex;justify-content:space-between;align-items:center}.brand-logo{width:115px;height:auto;display:block}.wrap{max-width:900px;margin:28px auto;padding:0 18px}.card{background:#fff;border:1px solid #dbe2dc;border-radius:12px;padding:22px;margin:16px 0}.hidden{display:none!important}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}label{display:block;font-weight:650;margin:12px 0 5px}input,textarea,select{width:100%;box-sizing:border-box;padding:10px;border:1px solid #bdc8be;border-radius:7px;font:inherit}textarea{min-height:82px}button{padding:10px 14px;border:0;border-radius:7px;background:#b88a2b;color:#201b10;font-weight:700;cursor:pointer}.secondary{background:#f0ebdf;color:#3b301c}.notice{background:#fff8e7;border:1px solid #eed7a0;padding:10px;border-radius:7px}.muted{color:#667067}.error{color:#a82929}.rating{display:grid;grid-template-columns:1fr 140px;gap:10px;padding:9px 0;border-bottom:1px solid #e5e9e5}.review{display:block;width:100%;text-align:left;background:#fff;color:#18221b;border:1px solid #dbe2dc;margin:6px 0}.role{background:#f2e5ba;color:#55431a;padding:4px 9px;border-radius:99px;text-transform:capitalize}@media(max-width:650px){.grid,.rating{grid-template-columns:1fr}}</style></head><body>
-<header><div><img class="brand-logo" src="/htc-logo.png" alt="HTC Foods"><div class="muted">Performance review workspace</div></div><button id="out" class="secondary hidden">Sign out</button></header><main class="wrap">
-<section id="auth" class="card"><h1>Sign in securely</h1><p class="muted">Access is controlled by your role. Private manager feedback is never loaded for employees.</p><div class="grid"><div><label>Email<input id="email" type="email"></label></div><div><label>Password<input id="password" type="password"></label></div></div><p><button id="login">Sign in</button> <button id="reset" class="secondary">Forgot password?</button> <span class="muted">Need access? Ask HTC administration for an invite.</span></p><p id="msg" class="error"></p></section>
-<section id="recovery" class="card hidden"><h1>Set a new password</h1><label>New password<input id="newPassword" type="password"></label><p><button id="savePassword">Save new password</button></p><p id="resetMsg" class="error"></p></section><section id="app" class="hidden"><section class="card"><h1 id="welcome">Welcome</h1><span id="role" class="role"></span><p id="access" class="muted"></p></section>
-<section id="employee" class="card hidden"><h2>Section 1 — Employee self-review</h2><p class="muted">Your manager and executive leadership can view this section.</p><form id="employeeForm"><div class="grid"><label>Your name<input name="employee_name" required></label><label>Job title<input name="job_title" required></label></div><label>How have you been performing over the last 12 months?<textarea name="performance_reflection" required></textarea></label><label>What areas could you improve in?<textarea name="improvement_areas" required></textarea></label><label>How can your manager help?<textarea name="manager_support" required></textarea></label><h3>Ratings</h3><div id="eratings"></div><label>What do you enjoy about working at HTC Foods?<textarea name="enjoy_working"></textarea></label><label>How can HTC improve?<textarea name="improve_htc"></textarea></label><button>Save self-review</button> <span id="estatus" class="muted"></span></form></section>
-<section id="manager" class="card hidden"><h2>Section 2 — Manager feedback</h2><p class="notice">Private: only the concerned team manager and executive leadership can access this feedback.</p><div class="grid"><div><h3>Available reviews</h3><div id="reviews"></div></div><div id="editor" class="hidden"><h3 id="title">Private feedback</h3><form id="managerForm"><div id="mratings"></div><label>Strengths<textarea name="strengths" required></textarea></label><label>Areas for improvement<textarea name="improvement_areas" required></textarea></label><label>Private manager feedback<textarea name="private_feedback" required></textarea></label><button>Save private feedback</button> <span id="mstatus" class="muted"></span></form></div></div></section></section></main>
-<script type="module">import{createClient}from'https://esm.sh/@supabase/supabase-js@2';const sb=createClient('https://nibvlmriymjlauzklnbh.supabase.co','sb_publishable_-OLUMh-8YwntFR4xl6GFUA_wKHP-oW0'),$=s=>document.querySelector(s),items=['overall','attendance','integrity','accountability','passionate','success_focussed','teamwork'];let profile,selected;function ratings(id,prefix){$(id).innerHTML=items.map(x=>`<div class="rating"><label>${x.replace('_',' ')}<select name="${prefix}${x}" required><option value="">Rate…</option>${[1,2,3,4,5].map(n=>`<option>${n}</option>`).join('')}</select></label></div>`).join('')}function values(f){return Object.fromEntries(new FormData(f).entries())}function message(id,t,b){let e=$(id);e.textContent=t;e.className=b?'error':'muted'}async function load(){let{data:{user}}=await sb.auth.getUser();if(!user){$('#auth').classList.remove('hidden');$('#app').classList.add('hidden');return}let r=await sb.from('profiles').select('*').eq('id',user.id).single();if(r.error)return message('#msg',r.error.message,true);profile=r.data;$('#auth').classList.add('hidden');$('#app').classList.remove('hidden');$('#out').classList.remove('hidden');$('#welcome').textContent='Welcome'+(profile.display_name?', '+profile.display_name:'');$('#role').textContent=profile.role;$('#access').textContent=profile.role==='employee'?'You can submit your self-review.':'You can view authorised reviews and private manager feedback.';$('#employee').classList.toggle('hidden',profile.role!=='employee');$('#manager').classList.toggle('hidden',profile.role==='employee');if(profile.role==='employee')employee();else manager()}async function employee(){let r=await sb.from('reviews').select('*').eq('employee_id',profile.id).maybeSingle(),a=r.data?.employee_answers||{};Object.entries(a).forEach(([k,v])=>{let e=$(`[name="${k}"]`);if(e)e.value=v});$('#estatus').textContent=r.data?.submitted_at?'Saved':'Not submitted'}async function manager(){let r=await sb.from('reviews').select('*').order('updated_at',{ascending:false});$('#reviews').innerHTML=r.data?.length?r.data.map(x=>`<button class="review" data-id="${x.id}">${x.employee_answers?.employee_name||'Unnamed employee'}<br><small>${x.employee_answers?.job_title||'Self-review pending'}</small></button>`).join(''):'<p class="muted">No employee reviews are available.</p>';document.querySelectorAll('.review').forEach(b=>b.onclick=()=>open(r.data.find(x=>x.id===b.dataset.id)))}async function open(r){selected=r;$('#editor').classList.remove('hidden');$('#title').textContent='Private feedback — '+(r.employee_answers?.employee_name||'Employee');let f=await sb.from('manager_feedback').select('*').eq('review_id',r.id).maybeSingle(),d=f.data||{};Object.entries(d.ratings||{}).forEach(([k,v])=>{let e=$(`[name="m_${k}"]`);if(e)e.value=v});['strengths','improvement_areas','private_feedback'].forEach(k=>{$(`[name="${k}"]`).value=d[k]||''})}$('#login').onclick=async()=>{let r=await sb.auth.signInWithPassword({email:$('#email').value,password:$('#password').value});if(r.error)return message('#msg',r.error.message,true);load()};const signup=$('#signup');if(signup)signup.onclick=async()=>{let r=await sb.auth.signUp({email:$('#email').value,password:$('#password').value,options:{data:{full_name:$('#email').value.split('@')[0]}}});message('#msg',r.error?r.error.message:'Check your email to confirm your account.',!!r.error)};$('#out').onclick=async()=>{await sb.auth.signOut();load()};$('#employeeForm').onsubmit=async e=>{e.preventDefault();let r=await sb.from('reviews').upsert({employee_id:profile.id,employee_answers:values(e.target),submitted_at:new Date().toISOString(),updated_at:new Date().toISOString()},{onConflict:'employee_id'});message('#estatus',r.error?r.error.message:'Saved securely.',!!r.error)};$('#managerForm').onsubmit=async e=>{e.preventDefault();let d=values(e.target),ratings={};items.forEach(k=>{ratings[k]=d['m_'+k];delete d['m_'+k]});let r=await sb.from('manager_feedback').upsert({review_id:selected.id,author_id:profile.id,ratings,...d,submitted_at:new Date().toISOString(),updated_at:new Date().toISOString()});message('#mstatus',r.error?r.error.message:'Private feedback saved.',!!r.error)};ratings('#eratings','');ratings('#mratings','m_');load()</script></body></html>
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 Performance Review — Coaching Dashboard</title>
+<style>
+:root{
+  --color-background-primary:#ffffff;
+  --color-background-secondary:#f5f4f0;
+  --color-background-tertiary:#faf9f6;
+  --color-background-info:#e6f1fb;
+  --color-background-success:#eaf3de;
+  --color-background-warning:#faeeda;
+  --color-text-primary:#1a1a1a;
+  --color-text-secondary:#5f5e5a;
+  --color-text-tertiary:#888780;
+  --color-text-info:#0c447c;
+  --color-text-success:#27500a;
+  --color-text-warning:#633806;
+  --color-border-tertiary:rgba(0,0,0,0.12);
+  --color-border-info:#378ADD;
+  --radius-md:8px;
+  --radius-lg:12px;
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --color-background-primary:#1e1e1c;
+    --color-background-secondary:#2a2a27;
+    --color-background-tertiary:#161615;
+    --color-background-info:#0c447c;
+    --color-background-success:#27500a;
+    --color-background-warning:#633806;
+    --color-text-primary:#f1efe8;
+    --color-text-secondary:#b4b2a9;
+    --color-text-tertiary:#888780;
+    --color-text-info:#b5d4f4;
+    --color-text-success:#c0dd97;
+    --color-text-warning:#fac775;
+    --color-border-tertiary:rgba(255,255,255,0.15);
+    --color-border-info:#85b7eb;
+  }
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--color-background-tertiary);
+  color:var(--color-text-primary);
+  font-family:var(--font-sans);
+  padding:2.5rem 1.25rem 4rem;
+}
+.wrap{max-width:760px;margin:0 auto;}
+.page-header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:2rem;flex-wrap:wrap;}
+.page-header h1{font-size:21px;font-weight:600;margin:0 0 4px;}
+.page-header p{font-size:13px;color:var(--color-text-secondary);margin:0;}
+.section-label{font-size:13px;color:var(--color-text-secondary);margin-bottom:8px;}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;}
+button{
+  font-family:inherit;font-size:13px;background:var(--color-background-primary);
+  border:1px solid var(--color-border-tertiary);border-radius:var(--radius-md);
+  padding:7px 12px;cursor:pointer;color:var(--color-text-primary);
+}
+button:hover{background:var(--color-background-secondary);}
+button:active{transform:scale(0.98);}
+select,input[type=text]{
+  font-family:inherit;font-size:13px;border:1px solid var(--color-border-tertiary);
+  border-radius:var(--radius-md);padding:7px 10px;background:var(--color-background-primary);
+  color:var(--color-text-primary);
+}
+select:focus,input[type=text]:focus{outline:2px solid var(--color-border-info);outline-offset:1px;}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;padding:3px 9px;border-radius:var(--radius-md);white-space:nowrap;}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:1.75rem;}
+.metric-card{background:var(--color-background-secondary);border-radius:var(--radius-md);padding:1rem;}
+.metric-card .label{font-size:13px;color:var(--color-text-secondary);margin-bottom:4px;}
+.metric-card .value{font-size:24px;font-weight:500;}
+.timeline{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:2rem;}
+@media (max-width:560px){.timeline{grid-template-columns:1fr;}}
+.phase-card{background:var(--color-background-primary);border-radius:var(--radius-lg);padding:0.9rem 1rem;}
+.phase-card .ptitle{font-weight:500;font-size:14px;margin-bottom:4px;}
+.phase-card .pdates{font-size:12px;color:var(--color-text-secondary);margin-bottom:10px;}
+.dept-card{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:12px;}
+.dept-card-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:8px;flex-wrap:wrap;}
+.dept-name{font-weight:500;font-size:15px;}
+.dept-owner{font-size:12px;color:var(--color-text-secondary);}
+.progress-track{height:6px;border-radius:4px;background:var(--color-background-secondary);overflow:hidden;width:120px;}
+.progress-fill{height:100%;background:var(--color-text-success);}
+.member-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--color-border-tertiary);flex-wrap:wrap;}
+.member-name{flex:1;font-size:13px;min-width:90px;}
+.remove-btn{color:var(--color-text-tertiary);border-color:transparent;background:none;padding:4px 8px;}
+.remove-btn:hover{color:var(--color-text-warning);background:var(--color-background-secondary);}
+.add-row{display:flex;gap:8px;margin-top:10px;}
+.add-row input{flex:1;}
+#chart-empty{display:none;font-size:13px;color:var(--color-text-tertiary);padding:2rem 0;text-align:center;}
+#chart-wrap{position:relative;width:100%;height:260px;}
+.reset-link{font-size:12px;color:var(--color-text-tertiary);background:none;border:none;text-decoration:underline;cursor:pointer;padding:0;}
+</style>
+</head>
+<body>
+<div class="wrap">
 
+  <div class="page-header">
+    <div>
+      <h1>2026 performance review — coaching dashboard</h1>
+      <p>Share &#8594; conduct &#8594; calibrate, tracked by department</p>
+    </div>
+    <button id="reset-btn" class="reset-link" style="border:none;background:none;">Reset all data</button>
+  </div>
 
+  <h2 class="sr-only">Performance review dashboard: tracks the share, conduct, and calibration timeline, completion status by department, and average ratings for calibration</h2>
 
+  <div id="metrics" class="metrics"></div>
 
-<script type="module">
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-const recoveryClient = createClient('https://nibvlmriymjlauzklnbh.supabase.co','sb_publishable_-OLUMh-8YwntFR4xl6GFUA_wKHP-oW0');
-document.querySelector('#reset')?.addEventListener('click', async () => {
-  const email = document.querySelector('#email').value;
-  const result = await recoveryClient.auth.resetPasswordForEmail(email, { redirectTo: location.origin });
-  const message = document.querySelector('#msg');
-  message.textContent = result.error ? result.error.message : 'If this account exists, a password reset link has been sent.';
-});
-recoveryClient.auth.onAuthStateChange((event) => {
-  if (event === 'PASSWORD_RECOVERY') {
-    document.querySelector('#auth').classList.add('hidden');
-    document.querySelector('#recovery').classList.remove('hidden');
+  <div class="section-label">Review timeline</div>
+  <div id="timeline" class="timeline"></div>
+
+  <div class="section-label">Department tracker</div>
+  <div id="dept-section"></div>
+
+  <div class="section-label">Calibration — average overall rating by department</div>
+  <div id="chart-empty">No ratings submitted yet — this fills in as managers mark members "Submitted" and enter a rating.</div>
+  <div id="chart-wrap">
+    <canvas id="ratingsChart" role="img" aria-label="Bar chart of average overall rating by department"></canvas>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+(function(){
+var STORAGE_KEY='htc-review-2026';
+
+var STATUS_META={
+  not_started:{label:'Not started'},
+  shared:{label:'Form shared'},
+  in_progress:{label:'In progress'},
+  submitted:{label:'Submitted'}
+};
+var RATING_LABELS={1:'1 - Unsatisfactory',2:'2 - Needs improvement',3:'3 - Meets expectations',4:'4 - Exceeds expectations',5:'5 - Always exceeds'};
+
+function defaultState(){
+  return {departments:[
+    {name:'Operations',owner:'James',members:[]},
+    {name:'Purchasing',owner:'Anthony & Te-Amo',members:[]},
+    {name:'Marketing',owner:'Karin',members:[]},
+    {name:'Finance',owner:'Ly',members:[]},
+    {name:'Office',owner:'Tram',members:[]}
+  ]};
+}
+
+var state=null;
+var chartInstance=null;
+
+function uid(){return 'm'+Math.random().toString(36).slice(2,9);}
+
+function loadState(){
+  try{
+    var raw=localStorage.getItem(STORAGE_KEY);
+    if(raw)return JSON.parse(raw);
+  }catch(e){}
+  return defaultState();
+}
+function saveState(){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}
+}
+
+function dayMidnight(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
+
+function getPhases(){
+  var today=dayMidnight(new Date());
+  var d1=new Date(2026,5,24);
+  var d2s=new Date(2026,5,29),d2e=new Date(2026,6,10);
+  var d3s=new Date(2026,6,13),d3e=new Date(2026,6,17);
+  var p1,p2,p3;
+  if(today<=d1){p1='current';p2='upcoming';p3='upcoming';}
+  else if(today<d2s){p1='done';p2='upcoming';p3='upcoming';}
+  else if(today<=d2e){p1='done';p2='current';p3='upcoming';}
+  else if(today<d3s){p1='done';p2='done';p3='upcoming';}
+  else if(today<=d3e){p1='done';p2='done';p3='current';}
+  else{p1='done';p2='done';p3='done';}
+  return [
+    {title:'Share the form',dates:'Wed 24 June',status:p1},
+    {title:'Conduct reviews',dates:'29 June &#8211; 10 July',status:p2},
+    {title:'Calibration',dates:'13 &#8211; 17 July',status:p3}
+  ];
+}
+
+function currentPhaseLabel(phases){
+  var cur=phases.find(function(p){return p.status==='current';});
+  if(cur)return cur.title;
+  if(phases.every(function(p){return p.status==='done';}))return 'Complete';
+  return 'Between phases';
+}
+
+function metricCard(label,value){
+  return '<div class="metric-card"><div class="label">'+label+'</div><div class="value">'+value+'</div></div>';
+}
+
+function renderMetrics(){
+  var total=0,submitted=0;
+  state.departments.forEach(function(d){
+    total+=d.members.length;
+    d.members.forEach(function(m){if(m.status==='submitted')submitted++;});
+  });
+  var pct=total?Math.round(submitted/total*100):0;
+  var phases=getPhases();
+  document.getElementById('metrics').innerHTML=
+    metricCard('Team members',total)+
+    metricCard('Reviews submitted',submitted)+
+    metricCard('Completion',pct+'%')+
+    metricCard('Current phase',currentPhaseLabel(phases));
+}
+
+function phaseCard(p){
+  var bg,color,text;
+  if(p.status==='done'){bg='var(--color-background-success)';color='var(--color-text-success)';text='Done';}
+  else if(p.status==='current'){bg='var(--color-background-info)';color='var(--color-text-info)';text='Current';}
+  else{bg='var(--color-background-secondary)';color='var(--color-text-secondary)';text='Upcoming';}
+  var border=p.status==='current'?'2px solid var(--color-border-info)':'1px solid var(--color-border-tertiary)';
+  return '<div class="phase-card" style="border:'+border+';">'+
+    '<div class="ptitle">'+p.title+'</div>'+
+    '<div class="pdates">'+p.dates+'</div>'+
+    '<span class="badge" style="background:'+bg+';color:'+color+';">'+text+'</span>'+
+    '</div>';
+}
+
+function renderTimeline(){
+  document.getElementById('timeline').innerHTML=getPhases().map(phaseCard).join('');
+}
+
+function ratingSelect(deptIdx,member){
+  var opts=[1,2,3,4,5].map(function(v){
+    return '<option value="'+v+'"'+(member.rating===v?' selected':'')+'>'+RATING_LABELS[v]+'</option>';
+  }).join('');
+  return '<select data-action="rating-change" data-dept="'+deptIdx+'" data-member="'+member.id+'" style="min-width:180px;">'+
+    '<option value="">Rating&#8230;</option>'+opts+'</select>';
+}
+
+function statusSelect(deptIdx,member){
+  return '<select data-action="status-change" data-dept="'+deptIdx+'" data-member="'+member.id+'" style="min-width:130px;">'+
+    Object.keys(STATUS_META).map(function(k){
+      return '<option value="'+k+'"'+(member.status===k?' selected':'')+'>'+STATUS_META[k].label+'</option>';
+    }).join('')+'</select>';
+}
+
+function memberRow(deptIdx,member){
+  return '<div class="member-row">'+
+    '<span class="member-name">'+member.name+'</span>'+
+    statusSelect(deptIdx,member)+
+    (member.status==='submitted'?ratingSelect(deptIdx,member):'')+
+    '<button class="remove-btn" data-action="remove-member" data-dept="'+deptIdx+'" data-member="'+member.id+'" aria-label="Remove '+member.name+'">Remove</button>'+
+    '</div>';
+}
+
+function deptCard(d,i){
+  var total=d.members.length;
+  var submitted=d.members.filter(function(m){return m.status==='submitted';}).length;
+  var pct=total?Math.round(submitted/total*100):0;
+  return '<div class="dept-card">'+
+    '<div class="dept-card-head">'+
+      '<div><div class="dept-name">'+d.name+'</div><div class="dept-owner">Owner: '+d.owner+'</div></div>'+
+      '<div style="text-align:right;min-width:120px;">'+
+        '<div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:4px;">'+submitted+' / '+total+' submitted</div>'+
+        '<div class="progress-track"><div class="progress-fill" style="width:'+pct+'%;"></div></div>'+
+      '</div>'+
+    '</div>'+
+    d.members.map(function(m){return memberRow(i,m);}).join('')+
+    '<div class="add-row">'+
+      '<input type="text" data-add-input="'+i+'" placeholder="Add team member">'+
+      '<button data-action="add-member" data-dept="'+i+'">+ Add</button>'+
+    '</div>'+
+    '</div>';
+}
+
+function renderDepartments(){
+  document.getElementById('dept-section').innerHTML=state.departments.map(deptCard).join('');
+}
+
+function renderChart(){
+  var labels=[],data=[];
+  state.departments.forEach(function(d){
+    var rated=d.members.filter(function(m){return m.status==='submitted'&&m.rating;});
+    if(rated.length){
+      var avg=rated.reduce(function(s,m){return s+m.rating;},0)/rated.length;
+      labels.push(d.name);
+      data.push(Math.round(avg*10)/10);
+    }
+  });
+  var emptyEl=document.getElementById('chart-empty');
+  var wrapEl=document.getElementById('chart-wrap');
+  if(!labels.length){
+    emptyEl.style.display='block';
+    wrapEl.style.display='none';
+    return;
+  }
+  emptyEl.style.display='none';
+  wrapEl.style.display='block';
+  var canvas=document.getElementById('ratingsChart');
+  canvas.setAttribute('aria-label','Average overall rating by department: '+labels.map(function(l,idx){return l+' '+data[idx];}).join(', '));
+  if(chartInstance)chartInstance.destroy();
+  chartInstance=new Chart(canvas,{
+    type:'bar',
+    data:{labels:labels,datasets:[{label:'Avg overall rating',data:data,backgroundColor:'#378ADD'}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{y:{min:0,max:5,ticks:{stepSize:1}}}
+    }
+  });
+}
+
+function renderAll(){
+  renderMetrics();
+  renderTimeline();
+  renderDepartments();
+  renderChart();
+}
+
+function findMember(deptIdx,memberId){
+  var d=state.departments[deptIdx];
+  return d.members.find(function(m){return m.id===memberId;});
+}
+
+document.addEventListener('click',function(e){
+  var addBtn=e.target.closest('[data-action="add-member"]');
+  if(addBtn){
+    var idx=parseInt(addBtn.getAttribute('data-dept'),10);
+    var input=document.querySelector('[data-add-input="'+idx+'"]');
+    var name=input.value.trim();
+    if(name){
+      state.departments[idx].members.push({id:uid(),name:name,status:'not_started',rating:null});
+      saveState();
+      renderAll();
+    }
+    return;
+  }
+  var rmBtn=e.target.closest('[data-action="remove-member"]');
+  if(rmBtn){
+    var dIdx=parseInt(rmBtn.getAttribute('data-dept'),10);
+    var mId=rmBtn.getAttribute('data-member');
+    var dept=state.departments[dIdx];
+    dept.members=dept.members.filter(function(m){return m.id!==mId;});
+    saveState();
+    renderAll();
+    return;
+  }
+  if(e.target.id==='reset-btn'){
+    if(confirm('Reset all department and rating data? This cannot be undone.')){
+      state=defaultState();
+      saveState();
+      renderAll();
+    }
+    return;
   }
 });
-document.querySelector('#savePassword')?.addEventListener('click', async () => {
-  const result = await recoveryClient.auth.updateUser({ password: document.querySelector('#newPassword').value });
-  const message = document.querySelector('#resetMsg');
-  if (result.error) { message.textContent = result.error.message; } else { message.textContent = 'Password updated. Please sign in.'; await recoveryClient.auth.signOut(); document.querySelector('#recovery').classList.add('hidden'); document.querySelector('#auth').classList.remove('hidden'); }
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&e.target.matches('[data-add-input]')){
+    var idx=parseInt(e.target.getAttribute('data-add-input'),10);
+    var btn=document.querySelector('[data-action="add-member"][data-dept="'+idx+'"]');
+    if(btn)btn.click();
+  }
 });
+
+document.addEventListener('change',function(e){
+  var sel=e.target.closest('[data-action="status-change"]');
+  if(sel){
+    var dIdx=parseInt(sel.getAttribute('data-dept'),10);
+    var mId=sel.getAttribute('data-member');
+    var member=findMember(dIdx,mId);
+    member.status=sel.value;
+    if(sel.value!=='submitted')member.rating=null;
+    saveState();
+    renderAll();
+    return;
+  }
+  var rsel=e.target.closest('[data-action="rating-change"]');
+  if(rsel){
+    var dIdx2=parseInt(rsel.getAttribute('data-dept'),10);
+    var mId2=rsel.getAttribute('data-member');
+    var member2=findMember(dIdx2,mId2);
+    member2.rating=rsel.value?parseInt(rsel.value,10):null;
+    saveState();
+    renderAll();
+    return;
+  }
+});
+
+state=loadState();
+renderAll();
+})();
 </script>
-
-
-<script type="module">import{createClient}from'https://esm.sh/@supabase/supabase-js@2';const c=createClient('https://nibvlmriymjlauzklnbh.supabase.co','sb_publishable_-OLUMh-8YwntFR4xl6GFUA_wKHP-oW0');const{data:{session}}=await c.auth.getSession();if(session){const{data:p}=await c.from('profiles').select('role').eq('id',session.user.id).single();if(p?.role==='executive'){document.querySelector('main').insertAdjacentHTML('beforeend','<section class="card"><h2>Executive administration</h2><p class="muted">Invite a team member and set their access level.</p><label>Email<input id="inviteEmail" type="email"></label><label>Access level<select id="inviteRole"><option value="employee">Employee</option><option value="manager">Manager</option><option value="executive">Executive</option></select></label><p><button id="inviteUser">Send invite</button> <span id="inviteStatus" class="muted"></span></p></section>');document.querySelector('#inviteUser').onclick=async()=>{let r=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({email:document.querySelector('#inviteEmail').value,role:document.querySelector('#inviteRole').value})});let d=await r.json();document.querySelector('#inviteStatus').textContent=d.ok?'Invitation sent.':d.error}}}</script>
+</body>
+</html>
