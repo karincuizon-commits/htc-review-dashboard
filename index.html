@@ -28,6 +28,7 @@ recoveryClient.auth.onAuthStateChange((event) => {
 document.querySelector('#savePassword')?.addEventListener('click', async () => {
   const result = await recoveryClient.auth.updateUser({ password: document.querySelector('#newPassword').value });
   const message = document.querySelector('#resetMsg');
-  message.textContent = result.error ? result.error.message : 'Password updated. You can now sign in.';
+  if (result.error) { message.textContent = result.error.message; } else { message.textContent = 'Password updated. Please sign in.'; await recoveryClient.auth.signOut(); document.querySelector('#recovery').classList.add('hidden'); document.querySelector('#auth').classList.remove('hidden'); }
 });
 </script>
+
