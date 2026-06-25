@@ -219,7 +219,10 @@ select.filter{font-family:inherit;font-size:12px;border:1px solid var(--color-bo
         <h1>2026 performance review — coaching dashboard</h1>
         <p>Share &#8594; conduct &#8594; calibrate, tracked by department</p>
       </div>
-      <button id="reset-btn" class="reset-link" style="border:none;background:none;">Reset all data</button>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <a href="#form" class="primary" style="font-family:inherit;font-size:13px;background:var(--color-text-primary);color:var(--color-background-primary);border:1px solid var(--color-text-primary);border-radius:var(--radius-md);padding:7px 14px;text-decoration:none;cursor:pointer;">Do my review →</a>
+        <button id="reset-btn" class="reset-link" style="border:none;background:none;">Reset all data</button>
+      </div>
     </div>
     <h2 class="sr-only">Performance review dashboard: tracks the share, conduct, and calibration timeline, completion status by department, and average ratings for calibration</h2>
     <div id="metrics" class="metrics"></div>
@@ -261,8 +264,37 @@ select.filter{font-family:inherit;font-size:12px;border:1px solid var(--color-bo
 
 <!-- View: Form -->
 <div id="view-form" class="view">
-  <div class="wrap" id="form-wrap">
-    <p style="font-size:13px;color:var(--color-text-tertiary);margin-top:2rem;">Loading…</p>
+  <div class="wrap">
+    <div class="page-header">
+      <h1>My performance review</h1>
+      <p>Complete your self-assessment before your discussion with your manager.</p>
+    </div>
+    <div id="self-banner"></div>
+    <div class="card">
+      <h2>Self-review — 2026</h2>
+      <form id="self-form">
+        <div class="field"><label for="f-name">Your name</label><input id="f-name" name="employee_name" type="text" required></div>
+        <div class="field"><label for="f-title">Job title</label><input id="f-title" name="job_title" type="text" required></div>
+        <div class="field"><label for="f-perf">How have you performed over the last 12 months?</label><p class="hint">Describe your key contributions, achievements, and results.</p><textarea id="f-perf" name="performance_reflection" required></textarea></div>
+        <div class="field"><label for="f-improve">Areas to improve</label><p class="hint">What skills or behaviours would you like to develop?</p><textarea id="f-improve" name="improvement_areas" required></textarea></div>
+        <div class="field"><label for="f-support">Support needed from your manager</label><textarea id="f-support" name="manager_support"></textarea></div>
+        <div class="field"><label for="f-rating">Overall self-rating (1–5)</label>
+          <select id="f-rating" name="overall" required>
+            <option value="">Choose a rating</option>
+            <option value="1">1 — Unsatisfactory</option>
+            <option value="2">2 — Needs improvement</option>
+            <option value="3">3 — Meets expectations</option>
+            <option value="4">4 — Exceeds expectations</option>
+            <option value="5">5 — Always exceeds</option>
+          </select>
+        </div>
+        <div class="actions" id="self-actions">
+          <button type="submit" name="action" value="draft">Save draft</button>
+          <button type="submit" name="action" value="submit" class="primary">Submit review</button>
+          <span id="self-msg" class="msg"></span>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 
@@ -433,6 +465,7 @@ async function boot(){
     userRole = 'employee';
   }
   setupNav(userRole);
+  setupSelfReviewForm();
   document.getElementById('app-nav').style.display = '';
   const hash = (location.hash && location.hash !== '#') ? location.hash : '#form';
   try {
@@ -574,72 +607,36 @@ document.getElementById('review-modal').addEventListener('click', e => { if(e.ta
 
 // ── Form view ─────────────────────────────────────────────────────────────────
 async function renderFormView(){
-  try {
-    if(userRole === 'employee') await renderSelfReviewForm();
-    else await renderManagerFormView(formSelectedEmployee);
-  } catch(e) {
-    document.getElementById('form-wrap').innerHTML = `<p style="color:var(--color-text-warning);margin-top:2rem;">Could not load form: ${e.message}</p>`;
-  }
+  // Form HTML is static — just load saved answers and wire up submit
+  loadSelfReviewAnswers();
 }
 
-async function renderSelfReviewForm(){
-  const wrap = document.getElementById('form-wrap');
-  const ratingOptions = [['1','Unsatisfactory'],['2','Needs improvement'],['3','Meets expectations'],['4','Exceeds expectations'],['5','Always exceeds']];
-
-  // Render form immediately — no waiting on Supabase
-  wrap.innerHTML = `
-    <div class="page-header">
-      <h1>My performance review</h1>
-      <p>Complete your self-assessment before your discussion with your manager.</p>
-    </div>
-    <div id="self-banner"></div>
-    <div class="card">
-      <h2>Self-review — 2026</h2>
-      <form id="self-form">
-        <div class="field"><label>Your name</label><input name="employee_name" type="text" required></div>
-        <div class="field"><label>Job title</label><input name="job_title" type="text" required></div>
-        <div class="field"><label>How have you performed over the last 12 months?</label><p class="hint">Describe your key contributions, achievements, and results.</p><textarea name="performance_reflection" required></textarea></div>
-        <div class="field"><label>Areas to improve</label><p class="hint">What skills or behaviours would you like to develop?</p><textarea name="improvement_areas" required></textarea></div>
-        <div class="field"><label>Support needed from your manager</label><textarea name="manager_support"></textarea></div>
-        <div class="field"><label>Overall self-rating (1–5)</label>
-          <select name="overall" required>
-            <option value="">Choose a rating</option>
-            ${ratingOptions.map(([v,l])=>`<option value="${v}">${v} — ${l}</option>`).join('')}
-          </select>
-        </div>
-        <div class="actions"><button type="submit" name="action" value="draft">Save draft</button><button type="submit" name="action" value="submit" class="primary">Submit review</button><span id="self-msg" class="msg"></span></div>
-      </form>
-    </div>
-  `;
-
-  // Load saved answers in background and populate
+async function loadSelfReviewAnswers(){
   try {
+    if(!userId) return;
     const {data:existing} = await sb.from('reviews').select('*').eq('employee_id',userId).maybeSingle();
+    const form = document.getElementById('self-form');
+    if(!form) return;
     if(existing){
       const ea = existing.employee_answers || {};
+      Object.entries(ea).forEach(([k,v]) => { if(form.elements[k]) form.elements[k].value = v; });
       const locked = existing.status === 'submitted' || existing.status === 'manager_submitted';
-      const form = document.getElementById('self-form');
-      if(!form) return;
-      // Fill saved values
-      Object.entries(ea).forEach(([k,v]) => {
-        const el = form.elements[k];
-        if(el) el.value = v;
-      });
-      // Show status banner
       const banner = document.getElementById('self-banner');
       if(locked){
-        banner.innerHTML = '<div class="status-banner status-submitted">✓ Your self-review has been submitted.</div>';
-        form.querySelectorAll('input,textarea,select,button').forEach(el => el.disabled = true);
-        form.querySelector('.actions').remove();
-        return;
+        banner.innerHTML = '<div class="status-banner status-submitted" style="margin-bottom:1rem">✓ Your self-review has been submitted.</div>';
+        form.querySelectorAll('input,textarea,select').forEach(el => el.disabled = true);
+        const actions = document.getElementById('self-actions');
+        if(actions) actions.style.display = 'none';
       } else {
-        banner.innerHTML = '<div class="status-banner status-draft">Your review is saved as a draft. Submit it when you\'re ready.</div>';
+        banner.innerHTML = '<div class="status-banner status-draft" style="margin-bottom:1rem">Your review is saved as a draft.</div>';
       }
     }
   } catch(e) {
     console.warn('Could not load saved review:', e);
   }
+}
 
+function setupSelfReviewForm(){
   document.getElementById('self-form').addEventListener('submit', async e => {
     e.preventDefault();
     const action = e.submitter?.value || 'draft';
@@ -651,7 +648,7 @@ async function renderSelfReviewForm(){
     const payload = {employee_id:userId,employee_answers:answers,updated_at:new Date().toISOString(),...(action==='submit'?{status:'submitted',submitted_at:new Date().toISOString()}:{status:'draft'})};
     const {error} = await sb.from('reviews').upsert(payload,{onConflict:'employee_id'});
     if(error){const m=document.getElementById('self-msg');m.textContent=error.message;m.className='msg err';btns.forEach(b=>b.disabled=false);}
-    else if(action==='submit') renderSelfReviewForm();
+    else if(action==='submit') loadSelfReviewAnswers();
     else{const m=document.getElementById('self-msg');m.textContent='Draft saved.';m.className='msg';btns.forEach(b=>b.disabled=false);}
   });
 }
