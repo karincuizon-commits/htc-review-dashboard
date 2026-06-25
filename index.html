@@ -434,7 +434,7 @@ async function boot(){
   }
   setupNav(userRole);
   document.getElementById('app-nav').style.display = '';
-  const hash = (location.hash && location.hash !== '#') ? location.hash : (userRole === 'employee' ? '#form' : '#home');
+  const hash = (location.hash && location.hash !== '#') ? location.hash : '#form';
   try {
     navigate(hash);
   } catch(e) {
@@ -574,8 +574,12 @@ document.getElementById('review-modal').addEventListener('click', e => { if(e.ta
 
 // ── Form view ─────────────────────────────────────────────────────────────────
 async function renderFormView(){
-  if(userRole === 'employee') await renderSelfReviewForm();
-  else await renderManagerFormView(formSelectedEmployee);
+  try {
+    if(userRole === 'employee') await renderSelfReviewForm();
+    else await renderManagerFormView(formSelectedEmployee);
+  } catch(e) {
+    document.getElementById('form-wrap').innerHTML = `<p style="color:var(--color-text-warning);margin-top:2rem;">Could not load form: ${e.message}</p>`;
+  }
 }
 
 async function renderSelfReviewForm(){
