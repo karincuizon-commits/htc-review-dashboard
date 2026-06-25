@@ -423,12 +423,16 @@ document.getElementById('signout-btn').onclick = async e => {
 
 async function boot(){
   document.getElementById('signin-overlay').classList.add('hidden');
-  const {data:profile} = await sb.from('profiles').select('id,role,email').eq('id',session.user.id).single();
-  userRole = profile?.role || 'employee';
   userId = session.user.id;
+  try {
+    const {data:profile} = await sb.from('profiles').select('id,role,email').eq('id',session.user.id).maybeSingle();
+    userRole = profile?.role || 'employee';
+  } catch(e) {
+    userRole = 'employee';
+  }
   setupNav(userRole);
   document.getElementById('app-nav').style.display = '';
-  const hash = location.hash || (userRole === 'employee' ? '#form' : '#home');
+  const hash = (location.hash && location.hash !== '#') ? location.hash : (userRole === 'employee' ? '#form' : '#home');
   navigate(hash);
   window.addEventListener('hashchange', () => navigate(location.hash));
 }
