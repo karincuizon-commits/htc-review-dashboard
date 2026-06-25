@@ -184,6 +184,16 @@ select.filter{font-family:inherit;font-size:12px;border:1px solid var(--color-bo
 .review-field{margin-bottom:1rem;}
 .review-field .field-label{font-size:11px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;}
 .review-field .field-value{font-size:13px;line-height:1.5;color:var(--color-text-primary);background:var(--color-background-secondary);border-radius:var(--radius-md);padding:8px 10px;}
+
+/* Rating table */
+.rating-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px;}
+.rating-table th{text-align:left;font-weight:500;color:var(--color-text-secondary);padding:8px 10px;border-bottom:2px solid var(--color-border-tertiary);}
+.rating-table td{padding:8px 10px;border-bottom:1px solid var(--color-border-tertiary);vertical-align:middle;line-height:1.4;}
+.rating-table tr:last-child td{border-bottom:none;}
+.rating-group{display:flex;gap:14px;align-items:center;}
+.rating-group label{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;color:var(--color-text-secondary);cursor:pointer;}
+.rating-group input[type=radio]{accent-color:var(--color-text-primary);width:16px;height:16px;cursor:pointer;}
+.rating-group input[type=radio]:disabled{cursor:not-allowed;}
 </style>
 </head>
 <body>
@@ -269,27 +279,39 @@ select.filter{font-family:inherit;font-size:12px;border:1px solid var(--color-bo
   <div id="employee-section" class="wrap">
     <div class="page-header">
       <h1>My performance review</h1>
-      <p>Complete your self-assessment before your discussion with your manager.</p>
+      <p>2026 annual review — complete and submit before your discussion with your manager.</p>
     </div>
     <div id="self-banner"></div>
     <div class="card">
-      <h2>Self-review — 2026</h2>
+      <h2>Section 1 — Questions for employee</h2>
       <form id="self-form">
         <div class="field"><label for="f-name">Your name</label><input id="f-name" name="employee_name" type="text" required></div>
         <div class="field"><label for="f-title">Job title</label><input id="f-title" name="job_title" type="text" required></div>
-        <div class="field"><label for="f-perf">How have you performed over the last 12 months?</label><p class="hint">Describe your key contributions, achievements, and results.</p><textarea id="f-perf" name="performance_reflection" required></textarea></div>
-        <div class="field"><label for="f-improve">Areas to improve</label><p class="hint">What skills or behaviours would you like to develop?</p><textarea id="f-improve" name="improvement_areas" required></textarea></div>
-        <div class="field"><label for="f-support">Support needed from your manager</label><textarea id="f-support" name="manager_support"></textarea></div>
-        <div class="field"><label for="f-rating">Overall self-rating (1–5)</label>
-          <select id="f-rating" name="overall" required>
-            <option value="">Choose a rating</option>
-            <option value="1">1 — Unsatisfactory</option>
-            <option value="2">2 — Needs improvement</option>
-            <option value="3">3 — Meets expectations</option>
-            <option value="4">4 — Exceeds expectations</option>
-            <option value="5">5 — Always exceeds</option>
-          </select>
+
+        <div class="field"><label for="f-perf">How do you feel you've been performing over the last 12 months?</label><textarea id="f-perf" name="performance_reflection" required></textarea></div>
+        <div class="field"><label for="f-improve">Are there areas of your role you feel you could improve in?</label><textarea id="f-improve" name="improvement_areas"></textarea></div>
+        <div class="field"><label for="f-support">Is there anything I can do as your manager, to help you improve on those areas?</label><textarea id="f-support" name="manager_support"></textarea></div>
+
+        <div class="field">
+          <label>How would you rate your performance?</label>
+          <p class="hint">1 = Unsatisfactory &nbsp; 2 = Needs Improvement &nbsp; 3 = Meets Expectations &nbsp; 4 = Exceeds Expectations &nbsp; 5 = Always Exceeds Expectations</p>
+          <table class="rating-table">
+            <thead><tr><th>Area</th><th style="width:200px">Employee rating</th></tr></thead>
+            <tbody>
+              <tr><td>Overall performance</td><td><div class="rating-group" data-name="rating_overall"></div></td></tr>
+              <tr><td>Attendance &amp; punctuality</td><td><div class="rating-group" data-name="rating_attendance"></div></td></tr>
+              <tr><td><strong>Integrity</strong> — we act with integrity and do the right thing even when no one is watching.</td><td><div class="rating-group" data-name="rating_integrity"></div></td></tr>
+              <tr><td><strong>Accountability</strong> — we work to meet expected standards, take ownership of actions and take initiative to solve problems.</td><td><div class="rating-group" data-name="rating_accountability"></div></td></tr>
+              <tr><td><strong>Passionate</strong> — we go above and beyond to support our team, exceed customer expectations and we see challenges as opportunity.</td><td><div class="rating-group" data-name="rating_passionate"></div></td></tr>
+              <tr><td><strong>Success Focussed</strong> — working to our potential and having a growth mindset everyday. Setting goals, staying positive and continually learning.</td><td><div class="rating-group" data-name="rating_success_focussed"></div></td></tr>
+              <tr><td><strong>Teamwork</strong> — we work better together.</td><td><div class="rating-group" data-name="rating_teamwork"></div></td></tr>
+            </tbody>
+          </table>
         </div>
+
+        <div class="field"><label for="f-enjoy">What do you enjoy about working at HTC Foods?</label><textarea id="f-enjoy" name="enjoy"></textarea></div>
+        <div class="field"><label for="f-improve2">How can we improve?</label><textarea id="f-improve2" name="how_to_improve"></textarea></div>
+
         <div class="actions" id="self-actions">
           <button type="submit" name="action" value="draft">Save draft</button>
           <button type="submit" name="action" value="submit" class="primary">Submit review</button>
@@ -650,12 +672,16 @@ async function loadSelfReviewAnswers(){
     if(!form) return;
     if(existing){
       const ea = existing.employee_answers || {};
+      // Fill text/select fields
       Object.entries(ea).forEach(([k,v]) => { if(form.elements[k]) form.elements[k].value = v; });
+      // Re-render rating groups with saved values
+      renderRatingGroups(ea);
       const locked = existing.status === 'submitted' || existing.status === 'manager_submitted';
       const banner = document.getElementById('self-banner');
       if(locked){
         banner.innerHTML = '<div class="status-banner status-submitted" style="margin-bottom:1rem">✓ Your self-review has been submitted.</div>';
         form.querySelectorAll('input,textarea,select').forEach(el => el.disabled = true);
+        renderRatingGroups(ea, true);
         const actions = document.getElementById('self-actions');
         if(actions) actions.style.display = 'none';
       } else {
@@ -667,7 +693,21 @@ async function loadSelfReviewAnswers(){
   }
 }
 
+const RATING_FIELDS = ['rating_overall','rating_attendance','rating_integrity','rating_accountability','rating_passionate','rating_success_focussed','rating_teamwork'];
+
+function renderRatingGroups(savedValues={}, disabled=false){
+  document.querySelectorAll('.rating-group').forEach(group => {
+    const name = group.dataset.name;
+    group.innerHTML = [1,2,3,4,5].map(n => `
+      <label>
+        <input type="radio" name="${name}" value="${n}" ${savedValues[name]==n?'checked':''} ${disabled?'disabled':''}>
+        ${n}
+      </label>`).join('');
+  });
+}
+
 function setupSelfReviewForm(){
+  renderRatingGroups();
   document.getElementById('self-form').addEventListener('submit', async e => {
     e.preventDefault();
     const action = e.submitter?.value || 'draft';
