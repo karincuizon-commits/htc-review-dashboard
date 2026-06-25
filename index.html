@@ -807,7 +807,7 @@ async function renderManagerFormView(selectedId){
       if(action==='submit' && !confirm('Submit your assessment? You will not be able to edit it after submitting.')) return;
       const btns = e.target.querySelectorAll('button');
       btns.forEach(b=>b.disabled=true);
-      const payload = {employee_id:selectedId,manager_answers:answers,updated_at:new Date().toISOString(),...(action==='submit'?{status:'manager_submitted'}:{}),(revData?{}:{status:action==='submit'?'manager_submitted':'draft',submitted_at:null})};
+      const payload = {employee_id:selectedId,manager_answers:answers,updated_at:new Date().toISOString(),...(action==='submit'?{status:'manager_submitted'}:{}),...(revData?{}:{status:action==='submit'?'manager_submitted':'draft',submitted_at:null})};
       const {error} = await sb.from('reviews').upsert(payload,{onConflict:'employee_id'});
       if(error){const m=document.getElementById('manager-msg');m.textContent=error.message;m.className='msg err';btns.forEach(b=>b.disabled=false);}
       else if(action==='submit') renderManagerFormView(selectedId);
