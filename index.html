@@ -264,7 +264,9 @@ select.filter{font-family:inherit;font-size:12px;border:1px solid var(--color-bo
 
 <!-- View: Form -->
 <div id="view-form" class="view">
-  <div class="wrap">
+
+  <!-- Employee self-review (shown for employees) -->
+  <div id="employee-section" class="wrap">
     <div class="page-header">
       <h1>My performance review</h1>
       <p>Complete your self-assessment before your discussion with your manager.</p>
@@ -296,6 +298,24 @@ select.filter{font-family:inherit;font-size:12px;border:1px solid var(--color-bo
       </form>
     </div>
   </div>
+
+  <!-- Manager review (shown for managers/executives) -->
+  <div id="manager-section" class="wrap-wide" style="display:none;">
+    <div class="page-header">
+      <h1>Manager review</h1>
+      <p>Complete your assessment for each team member.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:260px 1fr;gap:1rem;align-items:start;" id="manager-grid">
+      <div>
+        <div class="section-label" style="margin-top:0;">Team members</div>
+        <div id="manager-emp-list"><p style="font-size:13px;color:var(--color-text-tertiary);">Loading team…</p></div>
+      </div>
+      <div id="manager-form-area">
+        <p style="font-size:13px;color:var(--color-text-tertiary);margin-top:0;">Select a team member to begin their assessment.</p>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- View: Admin -->
@@ -483,8 +503,16 @@ function setupNav(role){
     document.getElementById('nav-home').style.display = 'none';
     document.getElementById('nav-reviews').style.display = 'none';
     document.getElementById('nav-admin').style.display = 'none';
-  } else if(role === 'manager'){
-    document.getElementById('nav-admin').style.display = 'none';
+    // show employee form, hide manager form
+    document.getElementById('employee-section').style.display = '';
+    document.getElementById('manager-section').style.display = 'none';
+  } else {
+    // manager or executive: show manager form, hide employee self-review
+    document.getElementById('employee-section').style.display = 'none';
+    document.getElementById('manager-section').style.display = '';
+    if(role !== 'executive'){
+      document.getElementById('nav-admin').style.display = 'none';
+    }
   }
 }
 
@@ -607,8 +635,11 @@ document.getElementById('review-modal').addEventListener('click', e => { if(e.ta
 
 // ── Form view ─────────────────────────────────────────────────────────────────
 async function renderFormView(){
-  // Form HTML is static — just load saved answers and wire up submit
-  loadSelfReviewAnswers();
+  if(userRole === 'employee'){
+    loadSelfReviewAnswers();
+  } else {
+    loadManagerTeamList();
+  }
 }
 
 async function loadSelfReviewAnswers(){
@@ -653,38 +684,61 @@ function setupSelfReviewForm(){
   });
 }
 
-async function renderManagerFormView(selectedId){
-  formSelectedEmployee = selectedId;
-  const wrap = document.getElementById('form-wrap');
-  const [{data:employees},{data:reviews}] = await Promise.all([
-    sb.from('profiles').select('id,email,role').neq('id',userId).order('email'),
-    sb.from('reviews').select('*')
-  ]);
-  const reviewMap = Object.fromEntries((reviews||[]).map(r=>[r.employee_id,r]));
-
-  function selfBadge(id){
-    const rev=reviewMap[id];
-    if(!rev) return '<span class="badge badge-none">No self-review</span>';
-    if(rev.status==='submitted'||rev.status==='manager_submitted') return '<span class="badge badge-submitted">Self-review in</span>';
-    return '<span class="badge badge-draft">Draft</span>';
+async function loadManagerTeamList(){
+  try {
+    const [{data:employees},{data:reviews}] = await Promise.all([
+      sb.from('profiles').select('id,email,role').neq('id',userId).order('email'),
+      sb.from('reviews').select('employee_id,status,manager_answers')
+    ]);
+    const reviewMap = Object.fromEntries((reviews||[]).map(r=>[r.employee_id,r]));
+    const list = document.getElementById('manager-emp-list');
+    if(!list) return;
+    if(!(employees||[]).length){ list.innerHTML='<p style="font-size:13px;color:var(--color-text-tertiary)">No team members found.</p>'; return; }
+    list.innerHTML = (employees||[]).map(emp => {
+      const rev = reviewMap[emp.id];
+      const badge = !rev ? '<span class="badge badge-none">No self-review</span>'
+        : (rev.status==='submitted'||rev.status==='manager_submitted') ? '<span class="badge badge-submitted">Self-review in</span>'
+        : '<span class="badge badge-draft">Draft</span>';
+      return `<div class="employee-item" data-emp-id="${emp.id}" style="margin-bottom:6px;">
+        <div><div class="emp-email">${emp.email||emp.id}</div><div class="emp-role">${emp.role||'employee'}</div></div>
+        ${badge}
+      </div>`;
+    }).join('');
+    list.addEventListener('click', e => {
+      const item = e.target.closest('[data-emp-id]');
+      if(!item) return;
+      list.querySelectorAll('.employee-item').forEach(el => el.classList.remove('active'));
+      item.classList.add('active');
+      renderManagerFormView(item.dataset.empId);
+    });
+  } catch(e) {
+    const list = document.getElementById('manager-emp-list');
+    if(list) list.innerHTML = `<p style="font-size:13px;color:var(--color-text-warning)">${e.message}</p>`;
   }
+}
 
-  const listHtml = (employees||[]).map(emp=>`
-    <div class="employee-item ${emp.id===selectedId?'active':''}" data-emp-id="${emp.id}">
-      <div><div class="emp-email">${emp.email||emp.id}</div><div class="emp-role">${emp.role||'employee'}</div></div>
-      ${selfBadge(emp.id)}
-    </div>`).join('');
-
-  let formHtml = '';
-  if(selectedId){
-    const emp = (employees||[]).find(e=>e.id===selectedId);
-    const rev = reviewMap[selectedId];
-    const ea = rev?.employee_answers||{}, ma = rev?.manager_answers||{};
-    const locked = rev?.status === 'manager_submitted';
-    const selfSection = rev ? [['Name','employee_name'],['Job title','job_title'],['Performance reflection','performance_reflection'],['Areas to improve','improvement_areas'],['Support needed','manager_support'],['Self-rating','overall']].filter(([,k])=>ea[k]).map(([l,k])=>`<div class="field"><label style="font-weight:400;color:var(--color-text-secondary)">${l}</label><div style="font-size:14px;background:var(--color-background-secondary);border-radius:var(--radius-md);padding:9px 11px;line-height:1.5">${ea[k]}</div></div>`).join('') : `<p style="font-size:13px;color:var(--color-text-tertiary)">No self-review submitted yet.</p>`;
-    formHtml = `<div class="card">
-      <button class="back-link" id="back-to-list">← Back to team list</button>
-      <h2>${emp?.email||selectedId}</h2>
+async function renderManagerFormView(selectedId){
+  const area = document.getElementById('manager-form-area');
+  if(!area) return;
+  if(!selectedId){
+    area.innerHTML = '<p style="font-size:13px;color:var(--color-text-tertiary);margin-top:0;">Select a team member to begin their assessment.</p>';
+    return;
+  }
+  area.innerHTML = '<p style="font-size:13px;color:var(--color-text-tertiary);">Loading…</p>';
+  try {
+    const [{data:empData},{data:revData}] = await Promise.all([
+      sb.from('profiles').select('id,email').eq('id',selectedId).single(),
+      sb.from('reviews').select('*').eq('employee_id',selectedId).maybeSingle()
+    ]);
+    const ea = revData?.employee_answers||{}, ma = revData?.manager_answers||{};
+    const locked = revData?.status === 'manager_submitted';
+    const selfFields = [['Name','employee_name'],['Job title','job_title'],['Performance over last 12 months','performance_reflection'],['Areas to improve','improvement_areas'],['Support needed','manager_support'],['Self-rating','overall']];
+    const selfSection = revData
+      ? selfFields.filter(([,k])=>ea[k]).map(([l,k])=>`<div class="field"><label style="font-weight:400;color:var(--color-text-secondary)">${l}</label><div style="font-size:14px;background:var(--color-background-secondary);border-radius:var(--radius-md);padding:9px 11px;line-height:1.5">${ea[k]}</div></div>`).join('') || '<p style="font-size:13px;color:var(--color-text-tertiary)">No answers yet.</p>'
+      : '<p style="font-size:13px;color:var(--color-text-tertiary)">No self-review submitted yet.</p>';
+    const ratings = [['1','Unsatisfactory'],['2','Needs improvement'],['3','Meets expectations'],['4','Exceeds expectations'],['5','Always exceeds']];
+    area.innerHTML = `<div class="card">
+      <h2>${empData?.email||selectedId}</h2>
       <p class="subtitle">Manager assessment — 2026 annual review</p>
       ${locked?'<div class="status-banner status-submitted">✓ Your manager review has been submitted.</div>':''}
       <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-text-secondary);margin-bottom:10px">Their self-review</div>
@@ -698,33 +752,13 @@ async function renderManagerFormView(selectedId){
         <div class="field"><label>Your rating (1–5)</label>
           <select name="manager_rating" ${locked?'disabled':''}>
             <option value="">Choose a rating</option>
-            ${[['1','Unsatisfactory'],['2','Needs improvement'],['3','Meets expectations'],['4','Exceeds expectations'],['5','Always exceeds']].map(([v,l])=>`<option value="${v}" ${ma.manager_rating===v?'selected':''}>${v} — ${l}</option>`).join('')}
+            ${ratings.map(([v,l])=>`<option value="${v}" ${ma.manager_rating===v?'selected':''}>${v} — ${l}</option>`).join('')}
           </select>
         </div>
         ${!locked?`<div class="actions"><button type="submit" name="action" value="draft">Save draft</button><button type="submit" name="action" value="submit" class="primary">Submit assessment</button><span id="manager-msg" class="msg"></span></div>`:''}
       </form>
     </div>`;
-  }
-
-  wrap.innerHTML = `
-    <div class="page-header"><h1>Manager review</h1><p>Complete your assessment for each team member.</p></div>
-    <div style="display:grid;grid-template-columns:${selectedId?'260px 1fr':'1fr'};gap:1rem;align-items:start;">
-      <div>
-        <div class="section-label" style="margin-top:0">Team members</div>
-        <div class="employee-list" id="emp-list">${listHtml}</div>
-        ${!(employees||[]).length?'<p style="font-size:13px;color:var(--color-text-tertiary)">No other team members found.</p>':''}
-      </div>
-      ${selectedId?`<div>${formHtml}</div>`:'<p style="font-size:13px;color:var(--color-text-tertiary);margin-top:0.5rem">Select a team member to begin their assessment.</p>'}
-    </div>
-  `;
-
-  document.getElementById('emp-list').addEventListener('click', e => {
-    const item = e.target.closest('[data-emp-id]');
-    if(item) renderManagerFormView(item.dataset.empId);
-  });
-
-  if(selectedId){
-    document.getElementById('back-to-list').onclick = () => renderManagerFormView(null);
+    if(locked) return;
     document.getElementById('manager-form').addEventListener('submit', async e => {
       e.preventDefault();
       const action = e.submitter?.value || 'draft';
@@ -733,13 +767,14 @@ async function renderManagerFormView(selectedId){
       if(action==='submit' && !confirm('Submit your assessment? You will not be able to edit it after submitting.')) return;
       const btns = e.target.querySelectorAll('button');
       btns.forEach(b=>b.disabled=true);
-      const existing = reviewMap[selectedId];
-      const payload = {employee_id:selectedId,manager_answers:answers,updated_at:new Date().toISOString(),...(action==='submit'?{status:'manager_submitted'}:{}), ...(existing?{}:{status:action==='submit'?'manager_submitted':'draft',submitted_at:null})};
+      const payload = {employee_id:selectedId,manager_answers:answers,updated_at:new Date().toISOString(),...(action==='submit'?{status:'manager_submitted'}:{}),(revData?{}:{status:action==='submit'?'manager_submitted':'draft',submitted_at:null})};
       const {error} = await sb.from('reviews').upsert(payload,{onConflict:'employee_id'});
       if(error){const m=document.getElementById('manager-msg');m.textContent=error.message;m.className='msg err';btns.forEach(b=>b.disabled=false);}
       else if(action==='submit') renderManagerFormView(selectedId);
       else{const m=document.getElementById('manager-msg');m.textContent='Draft saved.';m.className='msg';btns.forEach(b=>b.disabled=false);}
     });
+  } catch(e) {
+    area.innerHTML = `<p style="font-size:13px;color:var(--color-text-warning);">Could not load: ${e.message}</p>`;
   }
 }
 
