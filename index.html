@@ -455,35 +455,29 @@ const sb = createClient('https://nibvlmriymjlauzklnbh.supabase.co','sb_publishab
 // ── Auth ─────────────────────────────────────────────────────────────────────
 let session = null, userRole = null, userId = null;
 
-const {data:{session:s}} = await sb.auth.getSession();
-if(!s){
-  showSignIn();
-} else {
-  session = s;
-  await boot();
-}
-
-function showSignIn(){
-  document.getElementById('signin-overlay').classList.remove('hidden');
-}
-
+// Wire up sign-in button first — before any async work — so it always works
 document.getElementById('si-btn').onclick = async () => {
   const email = document.getElementById('si-email').value.trim();
   const pass = document.getElementById('si-password').value;
   const msg = document.getElementById('si-msg');
   const btn = document.getElementById('si-btn');
+  if(!email || !pass){ msg.textContent = 'Please enter your email and password.'; return; }
   btn.disabled = true;
   btn.textContent = 'Signing in…';
-  const {data,error} = await sb.auth.signInWithPassword({email,password:pass});
-  if(error){
-    msg.textContent = error.message;
-    btn.disabled = false;
-    btn.textContent = 'Sign in';
-  } else {
-    session = data.session;
-    document.getElementById('signin-overlay').classList.add('hidden');
-    await boot();
+  try {
+    const {data,error} = await sb.auth.signInWithPassword({email,password:pass});
+    if(error){
+      msg.textContent = error.message;
+    } else {
+      session = data.session;
+      document.getElementById('signin-overlay').classList.add('hidden');
+      await boot();
+    }
+  } catch(e) {
+    msg.textContent = 'Sign-in failed. Please try again.';
   }
+  btn.disabled = false;
+  btn.textContent = 'Sign in';
 };
 
 document.getElementById('si-email').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('si-password').focus(); });
@@ -494,6 +488,15 @@ document.getElementById('signout-btn').onclick = async e => {
   await sb.auth.signOut();
   location.reload();
 };
+
+// Check for existing session
+try {
+  const result = await sb.auth.getSession();
+  const s = result?.data?.session;
+  if(s){ session = s; await boot(); }
+} catch(e) {
+  console.warn('Session check failed:', e);
+}
 
 async function boot(){
   document.getElementById('signin-overlay').classList.add('hidden');
