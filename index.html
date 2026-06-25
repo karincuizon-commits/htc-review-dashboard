@@ -323,7 +323,7 @@ function initCoachingDashboard(){
 var STORAGE_KEY='htc-review-2026';
 var STATUS_META={not_started:{label:'Not started'},shared:{label:'Form shared'},in_progress:{label:'In progress'},submitted:{label:'Submitted'}};
 var RATING_LABELS={1:'1 - Unsatisfactory',2:'2 - Needs improvement',3:'3 - Meets expectations',4:'4 - Exceeds expectations',5:'5 - Always exceeds'};
-function defaultState(){return{departments:[{name:'Operations',owner:'James',members:[]},{name:'Purchasing',owner:'Anthony & Te-Amo',members:[]},{name:'Marketing',owner:'Karin',members:[]},{name:'Finance',owner:'Ly',members:[]},{name:'Office',owner:'Tram',members:[]},{name:'Sales',owner:'',members:[]}]};}
+function defaultState(){return{departments:[{name:'Operations',owner:'James',members:[]},{name:'Purchasing',owner:'Anthony & Te-Amo',members:[]},{name:'Marketing',owner:'Karin',members:[]},{name:'Finance',owner:'Ly',members:[]},{name:'Office',owner:'Tram',members:[]},{name:'Sales',owner:'Anthony',members:[]}]};}
 var state=null,chartInstance=null;
 function uid(){return 'm'+Math.random().toString(36).slice(2,9);}
 function loadState(){try{var raw=localStorage.getItem(STORAGE_KEY);if(raw)return JSON.parse(raw);}catch(e){}return defaultState();}
