@@ -47,7 +47,6 @@ body{margin:0;background:var(--color-background-tertiary);color:var(--color-text
 
 /* Sign-in overlay */
 #signin-overlay{position:fixed;inset:0;background:var(--color-background-tertiary);z-index:200;display:flex;align-items:center;justify-content:center;padding:1.25rem;}
-#signin-overlay.hidden{display:none;}
 .signin-box{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:var(--radius-lg);padding:2rem;max-width:400px;width:100%;}
 .signin-box h1{font-size:20px;font-weight:600;margin:0 0 4px;}
 .signin-box p{font-size:13px;color:var(--color-text-secondary);margin:0 0 1.25rem;}
@@ -62,10 +61,6 @@ nav a:hover{color:var(--color-text-primary);}
 nav a.active{color:var(--color-text-primary);font-weight:500;border-bottom-color:var(--color-text-primary);}
 .nav-right{margin-left:auto;}
 .nav-right a{font-size:12px;}
-
-/* Views */
-.view{display:none;}
-.view.active{display:block;}
 
 /* Shared layout */
 .wrap{max-width:760px;margin:0 auto;padding:2.5rem 1.25rem 0;}
@@ -203,34 +198,34 @@ select.filter{font-family:inherit;font-size:12px;border:1px solid var(--color-bo
   <div class="signin-box">
     <h1>HTC Performance Review</h1>
     <p>Sign in to access the dashboard.</p>
-    <input id="si-email" type="email" placeholder="Email">
-    <input id="si-password" type="password" placeholder="Password">
+    <input id="si-email" type="email" placeholder="Email" autocomplete="email">
+    <input id="si-password" type="password" placeholder="Password" autocomplete="current-password">
     <button class="primary" id="si-btn" style="width:100%;padding:9px;">Sign in</button>
     <p id="si-msg" style="font-size:13px;color:var(--color-text-warning);margin:8px 0 0;min-height:1.2em;"></p>
   </div>
 </div>
 
-<!-- Nav -->
+<!-- Nav (hidden until signed in) -->
 <nav id="app-nav" style="display:none;">
   <ul id="nav-links">
-    <li id="nav-home"><a href="#home">Dashboard</a></li>
-    <li id="nav-reviews"><a href="#reviews">Reviews</a></li>
-    <li id="nav-form"><a href="#form">My review</a></li>
-    <li id="nav-admin"><a href="#admin">Admin</a></li>
+    <li id="nav-home"><a href="#" id="nav-home-link">Dashboard</a></li>
+    <li id="nav-form"><a href="#" id="nav-form-link">My Review</a></li>
+    <li id="nav-reviews" style="display:none;"><a href="#" id="nav-reviews-link">Reviews</a></li>
+    <li id="nav-admin" style="display:none;"><a href="#" id="nav-admin-link">Admin</a></li>
     <li class="nav-right"><a href="#" id="signout-btn">Sign out</a></li>
   </ul>
 </nav>
 
-<!-- View: Home (coaching dashboard) -->
-<div id="view-home" class="view">
+<!-- Section: Dashboard (coaching) -->
+<div id="section-home" style="display:none;">
   <div class="wrap">
-    <div class="page-header">
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
       <div>
         <h1>2026 performance review — coaching dashboard</h1>
         <p>Share &#8594; conduct &#8594; calibrate, tracked by department</p>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <a href="#form" class="primary" style="font-family:inherit;font-size:13px;background:var(--color-text-primary);color:var(--color-background-primary);border:1px solid var(--color-text-primary);border-radius:var(--radius-md);padding:7px 14px;text-decoration:none;cursor:pointer;">Do my review →</a>
+        <button class="primary" id="dash-do-review-btn">Do my review &#8594;</button>
         <button id="reset-btn" class="reset-link" style="border:none;background:none;">Reset all data</button>
       </div>
     </div>
@@ -246,8 +241,171 @@ select.filter{font-family:inherit;font-size:12px;border:1px solid var(--color-bo
   </div>
 </div>
 
-<!-- View: Reviews overview -->
-<div id="view-reviews" class="view">
+<!-- Section: My Review -->
+<div id="section-form" style="display:none;">
+
+  <!-- Employee self-review -->
+  <div id="employee-section" class="wrap">
+    <div class="page-header">
+      <h1>My performance review</h1>
+      <p>2026 annual review — complete and submit before your discussion with your manager.</p>
+    </div>
+    <div id="self-banner"></div>
+    <div class="card">
+      <h2>Section 1 — Questions for employee</h2>
+      <form id="self-form">
+        <div class="field">
+          <label for="f-name">Your name</label>
+          <input id="f-name" name="employee_name" type="text" required>
+        </div>
+        <div class="field">
+          <label for="f-title">Job title</label>
+          <input id="f-title" name="job_title" type="text" required>
+        </div>
+        <div class="field">
+          <label for="f-perf">How do you feel you've been performing over the last 12 months?</label>
+          <textarea id="f-perf" name="performance_reflection" required></textarea>
+        </div>
+        <div class="field">
+          <label for="f-improve">Are there areas of your role you feel you could improve in?</label>
+          <textarea id="f-improve" name="improvement_areas"></textarea>
+        </div>
+        <div class="field">
+          <label for="f-support">Is there anything I can do as your manager, to help you improve on those areas?</label>
+          <textarea id="f-support" name="manager_support"></textarea>
+        </div>
+        <div class="field">
+          <label>How would you rate your performance?</label>
+          <p class="hint">1 = Unsatisfactory &nbsp; 2 = Needs Improvement &nbsp; 3 = Meets Expectations &nbsp; 4 = Exceeds Expectations &nbsp; 5 = Always Exceeds Expectations</p>
+          <table class="rating-table">
+            <thead><tr><th>Area</th><th style="width:220px">Rating</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>Overall performance</td>
+                <td>
+                  <div class="rating-group">
+                    <label><input type="radio" name="rating_overall" value="1"> 1</label>
+                    <label><input type="radio" name="rating_overall" value="2"> 2</label>
+                    <label><input type="radio" name="rating_overall" value="3"> 3</label>
+                    <label><input type="radio" name="rating_overall" value="4"> 4</label>
+                    <label><input type="radio" name="rating_overall" value="5"> 5</label>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>Attendance &amp; punctuality</td>
+                <td>
+                  <div class="rating-group">
+                    <label><input type="radio" name="rating_attendance" value="1"> 1</label>
+                    <label><input type="radio" name="rating_attendance" value="2"> 2</label>
+                    <label><input type="radio" name="rating_attendance" value="3"> 3</label>
+                    <label><input type="radio" name="rating_attendance" value="4"> 4</label>
+                    <label><input type="radio" name="rating_attendance" value="5"> 5</label>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Integrity</strong> — we act with integrity and do the right thing even when no one is watching.</td>
+                <td>
+                  <div class="rating-group">
+                    <label><input type="radio" name="rating_integrity" value="1"> 1</label>
+                    <label><input type="radio" name="rating_integrity" value="2"> 2</label>
+                    <label><input type="radio" name="rating_integrity" value="3"> 3</label>
+                    <label><input type="radio" name="rating_integrity" value="4"> 4</label>
+                    <label><input type="radio" name="rating_integrity" value="5"> 5</label>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Accountability</strong> — we work to meet expected standards, take ownership of actions and take initiative to solve problems.</td>
+                <td>
+                  <div class="rating-group">
+                    <label><input type="radio" name="rating_accountability" value="1"> 1</label>
+                    <label><input type="radio" name="rating_accountability" value="2"> 2</label>
+                    <label><input type="radio" name="rating_accountability" value="3"> 3</label>
+                    <label><input type="radio" name="rating_accountability" value="4"> 4</label>
+                    <label><input type="radio" name="rating_accountability" value="5"> 5</label>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Passionate</strong> — we go above and beyond to support our team, exceed customer expectations and we see challenges as opportunity.</td>
+                <td>
+                  <div class="rating-group">
+                    <label><input type="radio" name="rating_passionate" value="1"> 1</label>
+                    <label><input type="radio" name="rating_passionate" value="2"> 2</label>
+                    <label><input type="radio" name="rating_passionate" value="3"> 3</label>
+                    <label><input type="radio" name="rating_passionate" value="4"> 4</label>
+                    <label><input type="radio" name="rating_passionate" value="5"> 5</label>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Success Focussed</strong> — working to our potential and having a growth mindset everyday. Setting goals, staying positive and continually learning.</td>
+                <td>
+                  <div class="rating-group">
+                    <label><input type="radio" name="rating_success_focussed" value="1"> 1</label>
+                    <label><input type="radio" name="rating_success_focussed" value="2"> 2</label>
+                    <label><input type="radio" name="rating_success_focussed" value="3"> 3</label>
+                    <label><input type="radio" name="rating_success_focussed" value="4"> 4</label>
+                    <label><input type="radio" name="rating_success_focussed" value="5"> 5</label>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Teamwork</strong> — we work better together.</td>
+                <td>
+                  <div class="rating-group">
+                    <label><input type="radio" name="rating_teamwork" value="1"> 1</label>
+                    <label><input type="radio" name="rating_teamwork" value="2"> 2</label>
+                    <label><input type="radio" name="rating_teamwork" value="3"> 3</label>
+                    <label><input type="radio" name="rating_teamwork" value="4"> 4</label>
+                    <label><input type="radio" name="rating_teamwork" value="5"> 5</label>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="field">
+          <label for="f-enjoy">What do you enjoy about working at HTC Foods?</label>
+          <textarea id="f-enjoy" name="enjoy"></textarea>
+        </div>
+        <div class="field">
+          <label for="f-improve2">How can we improve?</label>
+          <textarea id="f-improve2" name="how_to_improve"></textarea>
+        </div>
+        <div class="actions" id="self-actions">
+          <button type="submit" name="action" value="draft">Save draft</button>
+          <button type="submit" name="action" value="submit" class="primary">Submit review</button>
+          <span id="self-msg" class="msg"></span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Manager review section (shown for managers/executives) -->
+  <div id="manager-section" class="wrap-wide" style="display:none;padding-top:0;">
+    <hr style="border:none;border-top:1px solid var(--color-border-tertiary);margin:2rem 0;">
+    <div class="page-header">
+      <h1>Review your team</h1>
+      <p>Select a team member to fill in your manager assessment.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:260px 1fr;gap:1.5rem;align-items:start;">
+      <div>
+        <div class="section-label" style="margin-top:0;">Team members</div>
+        <div id="manager-emp-list"><p style="font-size:13px;color:var(--color-text-tertiary);">Loading&#8230;</p></div>
+      </div>
+      <div id="manager-form-area">
+        <p style="font-size:13px;color:var(--color-text-tertiary);margin-top:0;">Select a team member to begin.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Section: Reviews overview -->
+<div id="section-reviews" style="display:none;">
   <div class="wrap-wide">
     <div class="page-header">
       <h1>Reviews overview</h1>
@@ -261,88 +419,20 @@ select.filter{font-family:inherit;font-size:12px;border:1px solid var(--color-bo
         <select class="filter" id="filter-self"><option value="">Any self-review</option><option value="submitted">Self-review submitted</option><option value="draft">Draft</option><option value="none">Not started</option></select>
         <select class="filter" id="filter-manager-rev"><option value="">Any manager review</option><option value="submitted">Manager review submitted</option><option value="draft">Draft</option><option value="none">Not started</option></select>
       </div>
-      <div id="reviews-table-wrap"><p style="font-size:13px;color:var(--color-text-tertiary)">Loading…</p></div>
+      <div id="reviews-table-wrap"><p style="font-size:13px;color:var(--color-text-tertiary)">Loading&#8230;</p></div>
     </div>
   </div>
+  <!-- Review detail modal -->
   <div id="review-modal" style="display:none;" class="modal-backdrop">
     <div class="modal">
-      <button class="modal-close" id="review-modal-close">✕</button>
+      <button class="modal-close" id="review-modal-close">&#10005;</button>
       <div id="review-modal-body"></div>
     </div>
   </div>
 </div>
 
-<!-- View: Form -->
-<div id="view-form" class="view">
-
-  <!-- Employee self-review (shown for employees) -->
-  <div id="employee-section" class="wrap">
-    <div class="page-header">
-      <h1>My performance review</h1>
-      <p>2026 annual review — complete and submit before your discussion with your manager.</p>
-    </div>
-    <div id="self-banner"></div>
-    <div class="card">
-      <h2>Section 1 — Questions for employee</h2>
-      <form id="self-form">
-        <div class="field"><label for="f-name">Your name</label><input id="f-name" name="employee_name" type="text" required></div>
-        <div class="field"><label for="f-title">Job title</label><input id="f-title" name="job_title" type="text" required></div>
-
-        <div class="field"><label for="f-perf">How do you feel you've been performing over the last 12 months?</label><textarea id="f-perf" name="performance_reflection" required></textarea></div>
-        <div class="field"><label for="f-improve">Are there areas of your role you feel you could improve in?</label><textarea id="f-improve" name="improvement_areas"></textarea></div>
-        <div class="field"><label for="f-support">Is there anything I can do as your manager, to help you improve on those areas?</label><textarea id="f-support" name="manager_support"></textarea></div>
-
-        <div class="field">
-          <label>How would you rate your performance?</label>
-          <p class="hint">1 = Unsatisfactory &nbsp; 2 = Needs Improvement &nbsp; 3 = Meets Expectations &nbsp; 4 = Exceeds Expectations &nbsp; 5 = Always Exceeds Expectations</p>
-          <table class="rating-table">
-            <thead><tr><th>Area</th><th style="width:200px">Employee rating</th></tr></thead>
-            <tbody>
-              <tr><td>Overall performance</td><td><div class="rating-group" data-name="rating_overall"></div></td></tr>
-              <tr><td>Attendance &amp; punctuality</td><td><div class="rating-group" data-name="rating_attendance"></div></td></tr>
-              <tr><td><strong>Integrity</strong> — we act with integrity and do the right thing even when no one is watching.</td><td><div class="rating-group" data-name="rating_integrity"></div></td></tr>
-              <tr><td><strong>Accountability</strong> — we work to meet expected standards, take ownership of actions and take initiative to solve problems.</td><td><div class="rating-group" data-name="rating_accountability"></div></td></tr>
-              <tr><td><strong>Passionate</strong> — we go above and beyond to support our team, exceed customer expectations and we see challenges as opportunity.</td><td><div class="rating-group" data-name="rating_passionate"></div></td></tr>
-              <tr><td><strong>Success Focussed</strong> — working to our potential and having a growth mindset everyday. Setting goals, staying positive and continually learning.</td><td><div class="rating-group" data-name="rating_success_focussed"></div></td></tr>
-              <tr><td><strong>Teamwork</strong> — we work better together.</td><td><div class="rating-group" data-name="rating_teamwork"></div></td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="field"><label for="f-enjoy">What do you enjoy about working at HTC Foods?</label><textarea id="f-enjoy" name="enjoy"></textarea></div>
-        <div class="field"><label for="f-improve2">How can we improve?</label><textarea id="f-improve2" name="how_to_improve"></textarea></div>
-
-        <div class="actions" id="self-actions">
-          <button type="submit" name="action" value="draft">Save draft</button>
-          <button type="submit" name="action" value="submit" class="primary">Submit review</button>
-          <span id="self-msg" class="msg"></span>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Manager review (shown for managers/executives, below self-review) -->
-  <div id="manager-section" class="wrap-wide" style="display:none;padding-top:0;">
-    <hr style="border:none;border-top:1px solid var(--color-border-tertiary);margin:2rem 0;">
-    <div class="page-header">
-      <h1>Review your team</h1>
-      <p>Select a team member to fill in your manager assessment.</p>
-    </div>
-    <div style="display:grid;grid-template-columns:260px 1fr;gap:1.5rem;align-items:start;">
-      <div>
-        <div class="section-label" style="margin-top:0;">Team members</div>
-        <div id="manager-emp-list"><p style="font-size:13px;color:var(--color-text-tertiary);">Loading…</p></div>
-      </div>
-      <div id="manager-form-area">
-        <p style="font-size:13px;color:var(--color-text-tertiary);margin-top:0;">Select a team member to begin.</p>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<!-- View: Admin -->
-<div id="view-admin" class="view">
+<!-- Section: Admin -->
+<div id="section-admin" style="display:none;">
   <div class="wrap-wide">
     <div class="page-header">
       <h1>Admin centre</h1>
@@ -353,7 +443,7 @@ select.filter{font-family:inherit;font-size:12px;border:1px solid var(--color-bo
     <div class="card">
       <h2>Review cycles</h2>
       <p class="subtitle">Create and manage review periods. Open a cycle to allow form submissions.</p>
-      <div id="cycles-table-wrap"><p style="color:var(--color-text-tertiary);font-size:13px;">Loading…</p></div>
+      <div id="cycles-table-wrap"><p style="color:var(--color-text-tertiary);font-size:13px;">Loading&#8230;</p></div>
       <div class="section-label" style="margin-top:1.25rem;">Create new cycle</div>
       <div class="form-row">
         <label>Cycle name<input id="cycle-name" type="text" placeholder="e.g. 2026 Annual Review"></label>
@@ -368,7 +458,7 @@ select.filter{font-family:inherit;font-size:12px;border:1px solid var(--color-bo
     <div class="card">
       <h2>Team members</h2>
       <p class="subtitle">Change roles or remove users.</p>
-      <div id="users-table-wrap"><p style="color:var(--color-text-tertiary);font-size:13px;">Loading…</p></div>
+      <div id="users-table-wrap"><p style="color:var(--color-text-tertiary);font-size:13px;">Loading&#8230;</p></div>
       <div id="users-msg" class="msg" style="display:none;margin-top:8px;"></div>
     </div>
 
@@ -388,319 +478,627 @@ select.filter{font-family:inherit;font-size:12px;border:1px solid var(--color-bo
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 
-<!-- Coaching dashboard logic -->
+<!-- Coaching dashboard logic (localStorage-based, no Supabase) -->
 <script>
-var _dashboardInit=false;
-function initCoachingDashboard(){
-  if(_dashboardInit)return;
-  _dashboardInit=true;
-(function(){
-var STORAGE_KEY='htc-review-2026';
-var STATUS_META={not_started:{label:'Not started'},shared:{label:'Form shared'},in_progress:{label:'In progress'},submitted:{label:'Submitted'}};
-var RATING_LABELS={1:'1 - Unsatisfactory',2:'2 - Needs improvement',3:'3 - Meets expectations',4:'4 - Exceeds expectations',5:'5 - Always exceeds'};
-function defaultState(){return{departments:[{name:'Operations',owner:'James',members:[]},{name:'Purchasing',owner:'Anthony & Te-Amo',members:[]},{name:'Marketing',owner:'Karin',members:[]},{name:'Finance',owner:'Ly',members:[]},{name:'Office',owner:'Tram',members:[]},{name:'Sales',owner:'Anthony',members:[]}]};}
-var state=null,chartInstance=null;
-function uid(){return 'm'+Math.random().toString(36).slice(2,9);}
-function loadState(){try{var raw=localStorage.getItem(STORAGE_KEY);if(raw)return JSON.parse(raw);}catch(e){}return defaultState();}
-function saveState(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}}
-function dayMidnight(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
-function getPhases(){
-  var today=dayMidnight(new Date());
-  var d1=new Date(2026,5,24),d2s=new Date(2026,5,29),d2e=new Date(2026,6,10),d3s=new Date(2026,6,13),d3e=new Date(2026,6,17);
-  var p1,p2,p3;
-  if(today<=d1){p1='current';p2='upcoming';p3='upcoming';}
-  else if(today<d2s){p1='done';p2='upcoming';p3='upcoming';}
-  else if(today<=d2e){p1='done';p2='current';p3='upcoming';}
-  else if(today<d3s){p1='done';p2='done';p3='upcoming';}
-  else if(today<=d3e){p1='done';p2='done';p3='current';}
-  else{p1='done';p2='done';p3='done';}
-  return[{title:'Share the form',dates:'Wed 24 June',status:p1},{title:'Conduct reviews',dates:'29 June &#8211; 10 July',status:p2},{title:'Calibration',dates:'13 &#8211; 17 July',status:p3}];
-}
-function currentPhaseLabel(phases){var cur=phases.find(function(p){return p.status==='current';});if(cur)return cur.title;if(phases.every(function(p){return p.status==='done';}))return'Complete';return'Between phases';}
-function metricCard(label,value){return'<div class="metric-card"><div class="label">'+label+'</div><div class="value">'+value+'</div></div>';}
-function renderMetrics(){var total=0,submitted=0;state.departments.forEach(function(d){total+=d.members.length;d.members.forEach(function(m){if(m.status==='submitted')submitted++;});});var pct=total?Math.round(submitted/total*100):0;var phases=getPhases();document.getElementById('metrics').innerHTML=metricCard('Team members',total)+metricCard('Reviews submitted',submitted)+metricCard('Completion',pct+'%')+metricCard('Current phase',currentPhaseLabel(phases));}
-function phaseCard(p){var bg,color,text;if(p.status==='done'){bg='var(--color-background-success)';color='var(--color-text-success)';text='Done';}else if(p.status==='current'){bg='var(--color-background-info)';color='var(--color-text-info)';text='Current';}else{bg='var(--color-background-secondary)';color='var(--color-text-secondary)';text='Upcoming';}var border=p.status==='current'?'2px solid var(--color-border-info)':'1px solid var(--color-border-tertiary)';return'<div class="phase-card" style="border:'+border+';"><div class="ptitle">'+p.title+'</div><div class="pdates">'+p.dates+'</div><span class="badge" style="background:'+bg+';color:'+color+';">'+text+'</span></div>';}
-function renderTimeline(){document.getElementById('timeline').innerHTML=getPhases().map(phaseCard).join('');}
-function ratingSelect(deptIdx,member){var opts=[1,2,3,4,5].map(function(v){return'<option value="'+v+'"'+(member.rating===v?' selected':'')+'>'+RATING_LABELS[v]+'</option>';}).join('');return'<select data-action="rating-change" data-dept="'+deptIdx+'" data-member="'+member.id+'" style="min-width:180px;"><option value="">Rating&#8230;</option>'+opts+'</select>';}
-function statusSelect(deptIdx,member){return'<select data-action="status-change" data-dept="'+deptIdx+'" data-member="'+member.id+'" style="min-width:130px;">'+Object.keys(STATUS_META).map(function(k){return'<option value="'+k+'"'+(member.status===k?' selected':'')+'>'+STATUS_META[k].label+'</option>';}).join('')+'</select>';}
-function memberRow(deptIdx,member){return'<div class="member-row"><span class="member-name">'+member.name+'</span>'+statusSelect(deptIdx,member)+(member.status==='submitted'?ratingSelect(deptIdx,member):'')+' <button class="remove-btn" data-action="remove-member" data-dept="'+deptIdx+'" data-member="'+member.id+'" aria-label="Remove '+member.name+'">Remove</button></div>';}
-function deptCard(d,i){var total=d.members.length,submitted=d.members.filter(function(m){return m.status==='submitted';}).length,pct=total?Math.round(submitted/total*100):0;return'<div class="dept-card"><div class="dept-card-head"><div><div class="dept-name">'+d.name+'</div><div class="dept-owner">Owner: '+d.owner+'</div></div><div style="text-align:right;min-width:120px;"><div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:4px;">'+submitted+' / '+total+' submitted</div><div class="progress-track"><div class="progress-fill" style="width:'+pct+'%;"></div></div></div></div>'+d.members.map(function(m){return memberRow(i,m);}).join('')+'<div class="add-row"><input type="text" data-add-input="'+i+'" placeholder="Add team member"><button data-action="add-member" data-dept="'+i+'">+ Add</button></div></div>';}
-function renderDepartments(){document.getElementById('dept-section').innerHTML=state.departments.map(deptCard).join('');}
-function renderChart(){var labels=[],data=[];state.departments.forEach(function(d){var rated=d.members.filter(function(m){return m.status==='submitted'&&m.rating;});if(rated.length){var avg=rated.reduce(function(s,m){return s+m.rating;},0)/rated.length;labels.push(d.name);data.push(Math.round(avg*10)/10);}});var emptyEl=document.getElementById('chart-empty'),wrapEl=document.getElementById('chart-wrap');if(!labels.length){emptyEl.style.display='block';wrapEl.style.display='none';return;}emptyEl.style.display='none';wrapEl.style.display='block';var canvas=document.getElementById('ratingsChart');canvas.setAttribute('aria-label','Average overall rating by department: '+labels.map(function(l,idx){return l+' '+data[idx];}).join(', '));if(chartInstance)chartInstance.destroy();chartInstance=new Chart(canvas,{type:'bar',data:{labels:labels,datasets:[{label:'Avg overall rating',data:data,backgroundColor:'#378ADD'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:5,ticks:{stepSize:1}}}}});}
-function renderAll(){renderMetrics();renderTimeline();renderDepartments();renderChart();}
-function findMember(deptIdx,memberId){return state.departments[deptIdx].members.find(function(m){return m.id===memberId;});}
-document.getElementById('view-home').addEventListener('click',function(e){
-  var addBtn=e.target.closest('[data-action="add-member"]');
-  if(addBtn){var idx=parseInt(addBtn.getAttribute('data-dept'),10),input=document.querySelector('[data-add-input="'+idx+'"]'),name=input.value.trim();if(name){state.departments[idx].members.push({id:uid(),name:name,status:'not_started',rating:null});saveState();renderAll();}return;}
-  var rmBtn=e.target.closest('[data-action="remove-member"]');
-  if(rmBtn){var dIdx=parseInt(rmBtn.getAttribute('data-dept'),10),mId=rmBtn.getAttribute('data-member'),dept=state.departments[dIdx];dept.members=dept.members.filter(function(m){return m.id!==mId;});saveState();renderAll();return;}
-  if(e.target.id==='reset-btn'){if(confirm('Reset all department and rating data? This cannot be undone.')){state=defaultState();saveState();renderAll();}return;}
-});
-document.getElementById('view-home').addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.matches('[data-add-input]')){var idx=parseInt(e.target.getAttribute('data-add-input'),10),btn=document.querySelector('[data-action="add-member"][data-dept="'+idx+'"]');if(btn)btn.click();}});
-document.getElementById('view-home').addEventListener('change',function(e){
-  var sel=e.target.closest('[data-action="status-change"]');
-  if(sel){var dIdx=parseInt(sel.getAttribute('data-dept'),10),mId=sel.getAttribute('data-member'),member=findMember(dIdx,mId);member.status=sel.value;if(sel.value!=='submitted')member.rating=null;saveState();renderAll();return;}
-  var rsel=e.target.closest('[data-action="rating-change"]');
-  if(rsel){var dIdx2=parseInt(rsel.getAttribute('data-dept'),10),mId2=rsel.getAttribute('data-member'),member2=findMember(dIdx2,mId2);member2.rating=rsel.value?parseInt(rsel.value,10):null;saveState();renderAll();return;}
-});
-state=loadState();renderAll();
-})();
+var _dashboardInit = false;
+function initCoachingDashboard() {
+  if (_dashboardInit) return;
+  _dashboardInit = true;
+  (function () {
+    var STORAGE_KEY = 'htc-review-2026';
+    var STATUS_META = {
+      not_started: {label: 'Not started'},
+      shared:      {label: 'Form shared'},
+      in_progress: {label: 'In progress'},
+      submitted:   {label: 'Submitted'}
+    };
+    var RATING_LABELS = {
+      1: '1 - Unsatisfactory',
+      2: '2 - Needs improvement',
+      3: '3 - Meets expectations',
+      4: '4 - Exceeds expectations',
+      5: '5 - Always exceeds'
+    };
+    function defaultState() {
+      return {
+        departments: [
+          {name: 'Operations', owner: 'James',           members: []},
+          {name: 'Purchasing', owner: 'Anthony & Te-Amo', members: []},
+          {name: 'Marketing',  owner: 'Karin',            members: []},
+          {name: 'Finance',    owner: 'Ly',               members: []},
+          {name: 'Office',     owner: 'Tram',             members: []},
+          {name: 'Sales',      owner: 'Anthony',          members: []}
+        ]
+      };
+    }
+    var state = null, chartInstance = null;
+    function uid() { return 'm' + Math.random().toString(36).slice(2, 9); }
+    function loadState() {
+      try { var raw = localStorage.getItem(STORAGE_KEY); if (raw) return JSON.parse(raw); } catch (e) {}
+      return defaultState();
+    }
+    function saveState() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
+    function dayMidnight(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+    function getPhases() {
+      var today = dayMidnight(new Date());
+      var d1 = new Date(2026, 5, 24), d2s = new Date(2026, 5, 29), d2e = new Date(2026, 6, 10), d3s = new Date(2026, 6, 13), d3e = new Date(2026, 6, 17);
+      var p1, p2, p3;
+      if (today <= d1)       { p1 = 'current'; p2 = 'upcoming'; p3 = 'upcoming'; }
+      else if (today < d2s)  { p1 = 'done';    p2 = 'upcoming'; p3 = 'upcoming'; }
+      else if (today <= d2e) { p1 = 'done';    p2 = 'current';  p3 = 'upcoming'; }
+      else if (today < d3s)  { p1 = 'done';    p2 = 'done';     p3 = 'upcoming'; }
+      else if (today <= d3e) { p1 = 'done';    p2 = 'done';     p3 = 'current';  }
+      else                   { p1 = 'done';    p2 = 'done';     p3 = 'done';     }
+      return [
+        {title: 'Share the form',  dates: 'Wed 24 June',         status: p1},
+        {title: 'Conduct reviews', dates: '29 June &#8211; 10 July', status: p2},
+        {title: 'Calibration',     dates: '13 &#8211; 17 July',  status: p3}
+      ];
+    }
+    function currentPhaseLabel(phases) {
+      var cur = phases.find(function (p) { return p.status === 'current'; });
+      if (cur) return cur.title;
+      if (phases.every(function (p) { return p.status === 'done'; })) return 'Complete';
+      return 'Between phases';
+    }
+    function metricCard(label, value) {
+      return '<div class="metric-card"><div class="label">' + label + '</div><div class="value">' + value + '</div></div>';
+    }
+    function renderMetrics() {
+      var total = 0, submitted = 0;
+      state.departments.forEach(function (d) {
+        total += d.members.length;
+        d.members.forEach(function (m) { if (m.status === 'submitted') submitted++; });
+      });
+      var pct = total ? Math.round(submitted / total * 100) : 0;
+      var phases = getPhases();
+      document.getElementById('metrics').innerHTML =
+        metricCard('Team members', total) +
+        metricCard('Reviews submitted', submitted) +
+        metricCard('Completion', pct + '%') +
+        metricCard('Current phase', currentPhaseLabel(phases));
+    }
+    function phaseCard(p) {
+      var bg, color, text;
+      if (p.status === 'done')    { bg = 'var(--color-background-success)'; color = 'var(--color-text-success)'; text = 'Done'; }
+      else if (p.status === 'current') { bg = 'var(--color-background-info)'; color = 'var(--color-text-info)'; text = 'Current'; }
+      else                        { bg = 'var(--color-background-secondary)'; color = 'var(--color-text-secondary)'; text = 'Upcoming'; }
+      var border = p.status === 'current' ? '2px solid var(--color-border-info)' : '1px solid var(--color-border-tertiary)';
+      return '<div class="phase-card" style="border:' + border + ';"><div class="ptitle">' + p.title + '</div><div class="pdates">' + p.dates + '</div><span class="badge" style="background:' + bg + ';color:' + color + ';">' + text + '</span></div>';
+    }
+    function renderTimeline() {
+      document.getElementById('timeline').innerHTML = getPhases().map(phaseCard).join('');
+    }
+    function ratingSelect(deptIdx, member) {
+      var opts = [1, 2, 3, 4, 5].map(function (v) {
+        return '<option value="' + v + '"' + (member.rating === v ? ' selected' : '') + '>' + RATING_LABELS[v] + '</option>';
+      }).join('');
+      return '<select data-action="rating-change" data-dept="' + deptIdx + '" data-member="' + member.id + '" style="min-width:180px;"><option value="">Rating&#8230;</option>' + opts + '</select>';
+    }
+    function statusSelect(deptIdx, member) {
+      return '<select data-action="status-change" data-dept="' + deptIdx + '" data-member="' + member.id + '" style="min-width:130px;">' +
+        Object.keys(STATUS_META).map(function (k) {
+          return '<option value="' + k + '"' + (member.status === k ? ' selected' : '') + '>' + STATUS_META[k].label + '</option>';
+        }).join('') + '</select>';
+    }
+    function memberRow(deptIdx, member) {
+      return '<div class="member-row"><span class="member-name">' + member.name + '</span>' +
+        statusSelect(deptIdx, member) +
+        (member.status === 'submitted' ? ratingSelect(deptIdx, member) : '') +
+        ' <button class="remove-btn" data-action="remove-member" data-dept="' + deptIdx + '" data-member="' + member.id + '" aria-label="Remove ' + member.name + '">Remove</button></div>';
+    }
+    function deptCard(d, i) {
+      var total = d.members.length;
+      var submitted = d.members.filter(function (m) { return m.status === 'submitted'; }).length;
+      var pct = total ? Math.round(submitted / total * 100) : 0;
+      return '<div class="dept-card">' +
+        '<div class="dept-card-head">' +
+          '<div><div class="dept-name">' + d.name + '</div><div class="dept-owner">Owner: ' + d.owner + '</div></div>' +
+          '<div style="text-align:right;min-width:120px;"><div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:4px;">' + submitted + ' / ' + total + ' submitted</div>' +
+          '<div class="progress-track"><div class="progress-fill" style="width:' + pct + '%;"></div></div></div>' +
+        '</div>' +
+        d.members.map(function (m) { return memberRow(i, m); }).join('') +
+        '<div class="add-row"><input type="text" data-add-input="' + i + '" placeholder="Add team member"><button data-action="add-member" data-dept="' + i + '">+ Add</button></div>' +
+      '</div>';
+    }
+    function renderDepartments() {
+      document.getElementById('dept-section').innerHTML = state.departments.map(deptCard).join('');
+    }
+    function renderChart() {
+      var labels = [], data = [];
+      state.departments.forEach(function (d) {
+        var rated = d.members.filter(function (m) { return m.status === 'submitted' && m.rating; });
+        if (rated.length) {
+          var avg = rated.reduce(function (s, m) { return s + m.rating; }, 0) / rated.length;
+          labels.push(d.name);
+          data.push(Math.round(avg * 10) / 10);
+        }
+      });
+      var emptyEl = document.getElementById('chart-empty'), wrapEl = document.getElementById('chart-wrap');
+      if (!labels.length) { emptyEl.style.display = 'block'; wrapEl.style.display = 'none'; return; }
+      emptyEl.style.display = 'none'; wrapEl.style.display = 'block';
+      var canvas = document.getElementById('ratingsChart');
+      canvas.setAttribute('aria-label', 'Average overall rating by department: ' + labels.map(function (l, idx) { return l + ' ' + data[idx]; }).join(', '));
+      if (chartInstance) chartInstance.destroy();
+      chartInstance = new Chart(canvas, {
+        type: 'bar',
+        data: {labels: labels, datasets: [{label: 'Avg overall rating', data: data, backgroundColor: '#378ADD'}]},
+        options: {responsive: true, maintainAspectRatio: false, plugins: {legend: {display: false}}, scales: {y: {min: 0, max: 5, ticks: {stepSize: 1}}}}
+      });
+    }
+    function renderAll() { renderMetrics(); renderTimeline(); renderDepartments(); renderChart(); }
+    function findMember(deptIdx, memberId) {
+      return state.departments[deptIdx].members.find(function (m) { return m.id === memberId; });
+    }
+    document.getElementById('section-home').addEventListener('click', function (e) {
+      var addBtn = e.target.closest('[data-action="add-member"]');
+      if (addBtn) {
+        var idx = parseInt(addBtn.getAttribute('data-dept'), 10);
+        var input = document.querySelector('[data-add-input="' + idx + '"]');
+        var name = input.value.trim();
+        if (name) { state.departments[idx].members.push({id: uid(), name: name, status: 'not_started', rating: null}); saveState(); renderAll(); }
+        return;
+      }
+      var rmBtn = e.target.closest('[data-action="remove-member"]');
+      if (rmBtn) {
+        var dIdx = parseInt(rmBtn.getAttribute('data-dept'), 10), mId = rmBtn.getAttribute('data-member');
+        state.departments[dIdx].members = state.departments[dIdx].members.filter(function (m) { return m.id !== mId; });
+        saveState(); renderAll(); return;
+      }
+      if (e.target.id === 'reset-btn') {
+        if (confirm('Reset all department and rating data? This cannot be undone.')) { state = defaultState(); saveState(); renderAll(); }
+        return;
+      }
+    });
+    document.getElementById('section-home').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && e.target.matches('[data-add-input]')) {
+        var idx = parseInt(e.target.getAttribute('data-add-input'), 10);
+        var btn = document.querySelector('[data-action="add-member"][data-dept="' + idx + '"]');
+        if (btn) btn.click();
+      }
+    });
+    document.getElementById('section-home').addEventListener('change', function (e) {
+      var sel = e.target.closest('[data-action="status-change"]');
+      if (sel) {
+        var dIdx = parseInt(sel.getAttribute('data-dept'), 10), mId = sel.getAttribute('data-member');
+        var member = findMember(dIdx, mId);
+        member.status = sel.value;
+        if (sel.value !== 'submitted') member.rating = null;
+        saveState(); renderAll(); return;
+      }
+      var rsel = e.target.closest('[data-action="rating-change"]');
+      if (rsel) {
+        var dIdx2 = parseInt(rsel.getAttribute('data-dept'), 10), mId2 = rsel.getAttribute('data-member');
+        var member2 = findMember(dIdx2, mId2);
+        member2.rating = rsel.value ? parseInt(rsel.value, 10) : null;
+        saveState(); renderAll(); return;
+      }
+    });
+    state = loadState();
+    renderAll();
+  })();
 }
 </script>
 
 <!-- App shell -->
 <script type="module">
-import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
-const sb = createClient('https://nibvlmriymjlauzklnbh.supabase.co','sb_publishable_-OLUMh-8YwntFR4xl6GFUA_wKHP-oW0');
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-let session = null, userRole = 'employee', userId = null;
+const sb = createClient(
+  'https://nibvlmriymjlauzklnbh.supabase.co',
+  'sb_publishable_-OLUMh-8YwntFR4xl6GFUA_wKHP-oW0'
+);
 
-// ── Sign-in ───────────────────────────────────────────────────────────────────
+let session = null;
+let userRole = 'employee';
+let userId   = null;
+
+// ── SECTION MANAGEMENT ────────────────────────────────────────────────────────
+const SECTIONS = ['section-home', 'section-form', 'section-reviews', 'section-admin'];
+
+function showSection(id) {
+  SECTIONS.forEach(s => {
+    document.getElementById(s).style.display = (s === id) ? 'block' : 'none';
+  });
+  // Update active nav link
+  document.querySelectorAll('#nav-links a').forEach(a => a.classList.remove('active'));
+  const map = {
+    'section-home':    'nav-home-link',
+    'section-form':    'nav-form-link',
+    'section-reviews': 'nav-reviews-link',
+    'section-admin':   'nav-admin-link'
+  };
+  const linkId = map[id];
+  if (linkId) document.getElementById(linkId).classList.add('active');
+
+  // Lazy-load section data
+  if (id === 'section-home')    initCoachingDashboard();
+  if (id === 'section-form')    { loadSavedAnswers(); if (userRole !== 'employee') loadTeamList(); }
+  if (id === 'section-reviews') loadReviewsView();
+  if (id === 'section-admin')   loadAdminView();
+}
+
+// ── SIGN-IN (wired SYNCHRONOUSLY — no await before this) ─────────────────────
 document.getElementById('si-btn').onclick = async () => {
   const email = document.getElementById('si-email').value.trim();
   const pass  = document.getElementById('si-password').value;
   const msg   = document.getElementById('si-msg');
   const btn   = document.getElementById('si-btn');
   msg.textContent = '';
-  btn.disabled = true; btn.textContent = 'Signing in…';
-  const {data, error} = await sb.auth.signInWithPassword({email, password: pass});
-  btn.disabled = false; btn.textContent = 'Sign in';
-  if(error){ msg.textContent = error.message; return; }
-  session = data.session;
-  document.getElementById('signin-overlay').style.display = 'none';
-  await boot();
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+    if (error) { msg.textContent = error.message; return; }
+    session = data.session;
+    document.getElementById('signin-overlay').style.display = 'none';
+    await boot();
+  } catch (e) {
+    msg.textContent = e.message || 'Sign-in failed.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Sign in';
+  }
 };
-document.getElementById('si-email').onkeydown    = e => { if(e.key==='Enter') document.getElementById('si-password').focus(); };
-document.getElementById('si-password').onkeydown = e => { if(e.key==='Enter') document.getElementById('si-btn').click(); };
-document.getElementById('signout-btn').onclick   = async e => { e.preventDefault(); await sb.auth.signOut(); location.reload(); };
 
-// Check for existing session on load
+document.getElementById('si-email').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('si-password').focus();
+});
+document.getElementById('si-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('si-btn').click();
+});
+document.getElementById('signout-btn').addEventListener('click', async e => {
+  e.preventDefault();
+  try { await sb.auth.signOut(); } catch (err) { /* ignore */ }
+  location.reload();
+});
+
+// ── NAV CLICKS ────────────────────────────────────────────────────────────────
+document.getElementById('nav-home-link').addEventListener('click',    e => { e.preventDefault(); showSection('section-home'); });
+document.getElementById('nav-form-link').addEventListener('click',    e => { e.preventDefault(); showSection('section-form'); });
+document.getElementById('nav-reviews-link').addEventListener('click', e => { e.preventDefault(); showSection('section-reviews'); });
+document.getElementById('nav-admin-link').addEventListener('click',   e => { e.preventDefault(); showSection('section-admin'); });
+
+// "Do my review" button on dashboard
+document.getElementById('dash-do-review-btn').addEventListener('click', () => showSection('section-form'));
+
+// ── CHECK FOR EXISTING SESSION ────────────────────────────────────────────────
 (async () => {
   try {
-    const {data} = await sb.auth.getSession();
-    if(data?.session){ session = data.session; await boot(); }
-  } catch(e) { /* stay on sign-in */ }
+    const { data } = await sb.auth.getSession();
+    if (data?.session) {
+      session = data.session;
+      document.getElementById('signin-overlay').style.display = 'none';
+      await boot();
+    }
+  } catch (e) { /* stay on sign-in */ }
 })();
 
-async function boot(){
-  document.getElementById('signin-overlay').style.display = 'none';
+// ── BOOT ──────────────────────────────────────────────────────────────────────
+async function boot() {
   userId = session.user.id;
-  try {
-    const {data} = await sb.from('profiles').select('role').eq('id', userId).maybeSingle();
-    userRole = data?.role || 'employee';
-  } catch(e) { userRole = 'employee'; }
 
-  // Nav visibility
-  if(userRole === 'employee'){
-    document.getElementById('nav-home').style.display    = 'none';
+  // Fetch role
+  try {
+    const { data } = await sb.from('profiles').select('role').eq('id', userId).maybeSingle();
+    userRole = data?.role || 'employee';
+  } catch (e) {
+    userRole = 'employee';
+  }
+
+  // Apply nav visibility based on role
+  if (userRole === 'employee') {
     document.getElementById('nav-reviews').style.display = 'none';
     document.getElementById('nav-admin').style.display   = 'none';
-  } else if(userRole === 'manager'){
+  } else if (userRole === 'manager') {
+    document.getElementById('nav-reviews').style.display = 'list-item';
     document.getElementById('nav-admin').style.display   = 'none';
-    document.getElementById('manager-section').style.display = 'block';
   } else {
+    // executive
+    document.getElementById('nav-reviews').style.display = 'list-item';
+    document.getElementById('nav-admin').style.display   = 'list-item';
+  }
+
+  // Show manager section for non-employees
+  if (userRole !== 'employee') {
     document.getElementById('manager-section').style.display = 'block';
   }
 
-  // Render rating radio buttons into the static form
-  document.querySelectorAll('.rating-group').forEach(g => {
-    g.innerHTML = [1,2,3,4,5].map(n=>`<label><input type="radio" name="${g.dataset.name}" value="${n}"> ${n}</label>`).join('');
-  });
-
-  // Self-review submit
-  document.getElementById('self-form').onsubmit = async e => {
-    e.preventDefault();
-    const action = e.submitter?.value || 'draft';
-    if(action==='submit' && !confirm('Submit your review? You cannot edit it after.')) return;
-    const answers = Object.fromEntries(new FormData(e.target));
-    delete answers.action;
-    const btns = [...e.target.querySelectorAll('button')];
-    btns.forEach(b => b.disabled = true);
-    const {error} = await sb.from('reviews').upsert({
-      employee_id: userId, employee_answers: answers,
-      updated_at: new Date().toISOString(),
-      ...(action==='submit' ? {status:'submitted', submitted_at: new Date().toISOString()} : {status:'draft'})
-    }, {onConflict:'employee_id'});
-    btns.forEach(b => b.disabled = false);
-    const msg = document.getElementById('self-msg');
-    if(error){ msg.textContent = error.message; msg.className = 'msg err'; }
-    else if(action==='submit'){ msg.textContent = '✓ Submitted.'; msg.className = 'msg'; loadSavedAnswers(); }
-    else { msg.textContent = 'Draft saved.'; msg.className = 'msg'; }
-  };
-
-  document.getElementById('app-nav').style.display = '';
-  showView(location.hash || '#form');
-  window.onhashchange = () => showView(location.hash);
+  // Show nav, go to form by default
+  document.getElementById('app-nav').style.display = 'block';
+  showSection('section-form');
 }
 
-function showView(hash){
-  const key = hash.replace('#','') || 'form';
-  const ids = {home:'view-home', reviews:'view-reviews', form:'view-form', admin:'view-admin'};
-  Object.entries(ids).forEach(([k,id]) => {
-    document.getElementById(id).style.display = k === key ? 'block' : 'none';
-  });
-  document.querySelectorAll('#nav-links a').forEach(a => {
-    a.classList.toggle('active', a.getAttribute('href') === '#'+key);
-  });
-  if(key==='home')    { initCoachingDashboard(); }
-  if(key==='form')    { loadSavedAnswers(); if(userRole!=='employee') loadTeamList(); }
-  if(key==='reviews') { loadReviewsView(); }
-  if(key==='admin')   { loadAdminView(); }
-}
-
-// ── Form ─────────────────────────────────────────────────────────────────────
-async function loadSavedAnswers(){
-  if(!userId) return;
+// ── SELF-REVIEW FORM ──────────────────────────────────────────────────────────
+async function loadSavedAnswers() {
+  if (!userId) return;
   try {
-    const {data} = await sb.from('reviews').select('*').eq('employee_id',userId).maybeSingle();
-    if(!data) return;
-    const ea = data.employee_answers || {};
+    const { data } = await sb.from('reviews').select('*').eq('employee_id', userId).maybeSingle();
+    if (!data) return;
+
+    const ea   = data.employee_answers || {};
     const form = document.getElementById('self-form');
-    Object.entries(ea).forEach(([k,v]) => { if(form.elements[k]) form.elements[k].value = v; });
-    document.querySelectorAll('.rating-group').forEach(g => {
-      g.querySelectorAll('input[type=radio]').forEach(r => { r.checked = ea[g.dataset.name] == r.value; });
+
+    // Fill text inputs & textareas
+    ['employee_name','job_title','performance_reflection','improvement_areas',
+     'manager_support','enjoy','how_to_improve'].forEach(name => {
+      if (form.elements[name] && ea[name] != null) form.elements[name].value = ea[name];
     });
-    const locked = data.status==='submitted' || data.status==='manager_submitted';
+
+    // Fill radio buttons
+    ['rating_overall','rating_attendance','rating_integrity','rating_accountability',
+     'rating_passionate','rating_success_focussed','rating_teamwork'].forEach(name => {
+      if (ea[name] != null) {
+        const radio = form.querySelector(`input[type=radio][name="${name}"][value="${ea[name]}"]`);
+        if (radio) radio.checked = true;
+      }
+    });
+
+    const locked = data.status === 'submitted' || data.status === 'manager_submitted';
     const banner = document.getElementById('self-banner');
-    if(locked){
-      banner.innerHTML = '<div class="status-banner status-submitted" style="margin-bottom:1rem">✓ Your review has been submitted.</div>';
-      form.querySelectorAll('input,textarea,select').forEach(el => el.disabled=true);
+
+    if (locked) {
+      banner.innerHTML = '<div class="status-banner status-submitted">✓ Your review has been submitted.</div>';
+      form.querySelectorAll('input,textarea,select').forEach(el => { el.disabled = true; });
       document.getElementById('self-actions').style.display = 'none';
-    } else {
-      banner.innerHTML = '<div class="status-banner status-draft" style="margin-bottom:1rem">Saved as draft.</div>';
+    } else if (data.status === 'draft') {
+      banner.innerHTML = '<div class="status-banner status-draft">Saved as draft.</div>';
+      document.getElementById('self-actions').style.display = 'flex';
+      form.querySelectorAll('input,textarea,select').forEach(el => { el.disabled = false; });
     }
-  } catch(e) { console.warn(e); }
+  } catch (e) {
+    console.warn('loadSavedAnswers:', e);
+  }
 }
 
-async function loadTeamList(){
-  const list = document.getElementById('manager-emp-list');
+// Wire up self-review form submit
+document.getElementById('self-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const action = e.submitter?.value || 'draft';
+  if (action === 'submit' && !confirm('Submit your review? You cannot edit it after.')) return;
+
+  // Collect answers
+  const fd = new FormData(e.target);
+  const answers = {};
+  for (const [k, v] of fd.entries()) {
+    if (k !== 'action') answers[k] = v;
+  }
+
+  const btns = [...e.target.querySelectorAll('button')];
+  btns.forEach(b => { b.disabled = true; });
+
   try {
-    const [{data:emps},{data:revs}] = await Promise.all([
-      sb.from('profiles').select('id,email,role').neq('id',userId).order('email'),
+    const payload = {
+      employee_id: userId,
+      employee_answers: answers,
+      updated_at: new Date().toISOString()
+    };
+    if (action === 'submit') {
+      payload.status = 'submitted';
+      payload.submitted_at = new Date().toISOString();
+    } else {
+      payload.status = 'draft';
+    }
+    const { error } = await sb.from('reviews').upsert(payload, { onConflict: 'employee_id' });
+    const msgEl = document.getElementById('self-msg');
+    if (error) {
+      msgEl.textContent = error.message;
+      msgEl.className = 'msg err';
+    } else if (action === 'submit') {
+      msgEl.textContent = '✓ Submitted.';
+      msgEl.className = 'msg';
+      loadSavedAnswers();
+    } else {
+      msgEl.textContent = 'Draft saved.';
+      msgEl.className = 'msg';
+    }
+  } catch (err) {
+    const msgEl = document.getElementById('self-msg');
+    msgEl.textContent = err.message || 'Save failed.';
+    msgEl.className = 'msg err';
+  } finally {
+    btns.forEach(b => { b.disabled = false; });
+  }
+});
+
+// ── MANAGER — TEAM LIST ───────────────────────────────────────────────────────
+async function loadTeamList() {
+  const list = document.getElementById('manager-emp-list');
+  list.innerHTML = '<p style="font-size:13px;color:var(--color-text-tertiary)">Loading…</p>';
+  try {
+    const [profilesRes, reviewsRes] = await Promise.all([
+      sb.from('profiles').select('id,email,role').neq('id', userId).order('email'),
       sb.from('reviews').select('employee_id,status')
     ]);
-    const rmap = Object.fromEntries((revs||[]).map(r=>[r.employee_id,r]));
-    if(!(emps||[]).length){ list.innerHTML='<p style="font-size:13px;color:var(--color-text-tertiary)">No team members found.</p>'; return; }
-    list.innerHTML = (emps||[]).map(e => {
-      const rev = rmap[e.id];
-      const badge = !rev ? '<span class="badge badge-none">Not started</span>'
-        : rev.status==='submitted'||rev.status==='manager_submitted' ? '<span class="badge badge-submitted">Submitted</span>'
-        : '<span class="badge badge-draft">Draft</span>';
-      return `<div class="employee-item" data-emp="${e.id}" style="margin-bottom:6px"><div><div class="emp-email">${e.email||e.id}</div><div class="emp-role">${e.role||''}</div></div>${badge}</div>`;
+    const emps = profilesRes.data || [];
+    const rmap = Object.fromEntries((reviewsRes.data || []).map(r => [r.employee_id, r]));
+
+    if (!emps.length) {
+      list.innerHTML = '<p style="font-size:13px;color:var(--color-text-tertiary)">No team members found.</p>';
+      return;
+    }
+
+    list.innerHTML = emps.map(emp => {
+      const rev   = rmap[emp.id];
+      const badge = !rev
+        ? '<span class="badge badge-none">Not started</span>'
+        : (rev.status === 'submitted' || rev.status === 'manager_submitted')
+          ? '<span class="badge badge-submitted">Submitted</span>'
+          : '<span class="badge badge-draft">Draft</span>';
+      return `<div class="employee-item" data-emp="${emp.id}" style="margin-bottom:6px">
+        <div><div class="emp-email">${emp.email || emp.id}</div><div class="emp-role">${emp.role || ''}</div></div>
+        ${badge}
+      </div>`;
     }).join('');
-    list.onclick = e => {
+
+    list.addEventListener('click', e => {
       const item = e.target.closest('[data-emp]');
-      if(!item) return;
-      list.querySelectorAll('.employee-item').forEach(el=>el.classList.remove('active'));
+      if (!item) return;
+      list.querySelectorAll('.employee-item').forEach(el => el.classList.remove('active'));
       item.classList.add('active');
       loadManagerForm(item.dataset.emp);
-    };
-  } catch(e) { list.innerHTML=`<p style="font-size:13px;color:var(--color-text-warning)">${e.message}</p>`; }
+    });
+  } catch (e) {
+    list.innerHTML = `<p style="font-size:13px;color:var(--color-text-warning)">${e.message}</p>`;
+  }
 }
 
-async function loadManagerForm(empId){
+async function loadManagerForm(empId) {
   const area = document.getElementById('manager-form-area');
   area.innerHTML = '<p style="font-size:13px;color:var(--color-text-tertiary)">Loading…</p>';
   try {
-    const [{data:emp},{data:rev}] = await Promise.all([
-      sb.from('profiles').select('email').eq('id',empId).single(),
-      sb.from('reviews').select('*').eq('employee_id',empId).maybeSingle()
+    const [empRes, revRes] = await Promise.all([
+      sb.from('profiles').select('email').eq('id', empId).single(),
+      sb.from('reviews').select('*').eq('employee_id', empId).maybeSingle()
     ]);
-    const ea=rev?.employee_answers||{}, ma=rev?.manager_answers||{}, locked=rev?.status==='manager_submitted';
-    const selfHtml = rev ? [['How they performed',ea.performance_reflection],['Areas to improve',ea.improvement_areas],['Support needed',ea.manager_support]].filter(([,v])=>v).map(([l,v])=>`<div class="field"><label style="font-weight:400;color:var(--color-text-secondary)">${l}</label><div style="background:var(--color-background-secondary);border-radius:var(--radius-md);padding:9px 11px;font-size:14px;line-height:1.5">${v}</div></div>`).join('') : '<p style="font-size:13px;color:var(--color-text-tertiary)">No self-review yet.</p>';
-    const rOpts = [1,2,3,4,5].map(n=>`<option value="${n}" ${ma.manager_rating==n?'selected':''}>${n}</option>`).join('');
-    area.innerHTML = `<div class="card">
-      <h2>${emp?.email||empId}</h2>
-      ${locked?'<div class="status-banner status-submitted" style="margin-bottom:1rem">✓ Submitted.</div>':''}
-      <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-secondary);margin-bottom:10px">Their self-review</div>
-      ${selfHtml}<hr class="divider">
-      <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-secondary);margin-bottom:14px">Your assessment</div>
-      <form id="mgr-form">
-        <div class="field"><label>Strengths observed</label><textarea name="strengths" ${locked?'disabled':''}>${ma.strengths||''}</textarea></div>
-        <div class="field"><label>Areas for development</label><textarea name="development" ${locked?'disabled':''}>${ma.development||''}</textarea></div>
-        <div class="field"><label>Additional comments</label><textarea name="comments" ${locked?'disabled':''}>${ma.comments||''}</textarea></div>
-        <div class="field"><label>Your rating (1–5)</label><select name="manager_rating" ${locked?'disabled':''}><option value="">Choose</option>${rOpts}</select></div>
-        ${locked?'':'<div class="actions"><button type="submit" name="action" value="draft">Save draft</button><button type="submit" name="action" value="submit" class="primary">Submit</button><span id="mgr-msg" class="msg"></span></div>'}
-      </form></div>`;
-    if(locked) return;
-    document.getElementById('mgr-form').onsubmit = async e => {
-      e.preventDefault();
-      const action = e.submitter?.value||'draft';
-      if(action==='submit'&&!confirm('Submit assessment? Cannot edit after.')) return;
-      const answers = Object.fromEntries(new FormData(e.target)); delete answers.action;
-      const btns = [...e.target.querySelectorAll('button')]; btns.forEach(b=>b.disabled=true);
-      const {error} = await sb.from('reviews').upsert({
-        employee_id:empId, manager_answers:answers, updated_at:new Date().toISOString(),
-        ...(action==='submit'?{status:'manager_submitted'}:{})
-      },{onConflict:'employee_id'});
-      btns.forEach(b=>b.disabled=false);
-      const msg = document.getElementById('mgr-msg');
-      if(error){msg.textContent=error.message;msg.className='msg err';}
-      else if(action==='submit') loadManagerForm(empId);
-      else {msg.textContent='Saved.';msg.className='msg';}
-    };
-  } catch(e) { area.innerHTML=`<p style="color:var(--color-text-warning);font-size:13px">${e.message}</p>`; }
+    const emp    = empRes.data;
+    const rev    = revRes.data;
+    const ea     = rev?.employee_answers || {};
+    const ma     = rev?.manager_answers  || {};
+    const locked = rev?.status === 'manager_submitted';
+
+    const selfHtml = rev
+      ? [
+          ['How they performed',   ea.performance_reflection],
+          ['Areas to improve',     ea.improvement_areas],
+          ['Support needed',       ea.manager_support]
+        ].filter(([, v]) => v).map(([l, v]) =>
+          `<div class="field"><label style="font-weight:400;color:var(--color-text-secondary)">${l}</label>
+           <div style="background:var(--color-background-secondary);border-radius:var(--radius-md);padding:9px 11px;font-size:14px;line-height:1.5">${v}</div></div>`
+        ).join('')
+      : '<p style="font-size:13px;color:var(--color-text-tertiary)">No self-review yet.</p>';
+
+    const rOpts = [1,2,3,4,5].map(n =>
+      `<option value="${n}" ${ma.manager_rating == n ? 'selected' : ''}>${n}</option>`
+    ).join('');
+
+    area.innerHTML = `
+      <div class="card">
+        <h2>${emp?.email || empId}</h2>
+        ${locked ? '<div class="status-banner status-submitted">✓ Manager assessment submitted.</div>' : ''}
+        <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-secondary);margin-bottom:10px">Their self-review</div>
+        ${selfHtml}
+        <hr class="divider">
+        <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--color-text-secondary);margin-bottom:14px">Your assessment</div>
+        <form id="mgr-form">
+          <div class="field"><label>Strengths observed</label><textarea name="strengths" ${locked ? 'disabled' : ''}>${ma.strengths || ''}</textarea></div>
+          <div class="field"><label>Areas for development</label><textarea name="development" ${locked ? 'disabled' : ''}>${ma.development || ''}</textarea></div>
+          <div class="field"><label>Additional comments</label><textarea name="comments" ${locked ? 'disabled' : ''}>${ma.comments || ''}</textarea></div>
+          <div class="field"><label>Your rating (1–5)</label>
+            <select name="manager_rating" ${locked ? 'disabled' : ''}>
+              <option value="">Choose…</option>${rOpts}
+            </select>
+          </div>
+          ${locked ? '' : `<div class="actions">
+            <button type="submit" name="action" value="draft">Save draft</button>
+            <button type="submit" name="action" value="submit" class="primary">Submit</button>
+            <span id="mgr-msg" class="msg"></span>
+          </div>`}
+        </form>
+      </div>`;
+
+    if (!locked) {
+      document.getElementById('mgr-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        const action = e.submitter?.value || 'draft';
+        if (action === 'submit' && !confirm('Submit assessment? Cannot edit after.')) return;
+        const answers = {};
+        for (const [k, v] of new FormData(e.target).entries()) {
+          if (k !== 'action') answers[k] = v;
+        }
+        const btns = [...e.target.querySelectorAll('button')];
+        btns.forEach(b => { b.disabled = true; });
+        try {
+          const payload = { employee_id: empId, manager_answers: answers, updated_at: new Date().toISOString() };
+          if (action === 'submit') payload.status = 'manager_submitted';
+          const { error } = await sb.from('reviews').upsert(payload, { onConflict: 'employee_id' });
+          const msgEl = document.getElementById('mgr-msg');
+          if (error) {
+            msgEl.textContent = error.message; msgEl.className = 'msg err';
+          } else if (action === 'submit') {
+            loadManagerForm(empId);
+          } else {
+            msgEl.textContent = 'Saved.'; msgEl.className = 'msg';
+          }
+        } catch (err) {
+          const msgEl = document.getElementById('mgr-msg');
+          msgEl.textContent = err.message || 'Save failed.'; msgEl.className = 'msg err';
+        } finally {
+          btns.forEach(b => { b.disabled = false; });
+        }
+      });
+    }
+  } catch (e) {
+    area.innerHTML = `<p style="color:var(--color-text-warning);font-size:13px">${e.message}</p>`;
+  }
 }
 
-// ── Reviews view ─────────────────────────────────────────────────────────────
+// ── REVIEWS VIEW ──────────────────────────────────────────────────────────────
 let reviewsAllRows = [];
 
-async function loadReviewsView(){
-  const [profilesRes, reviewsRes] = await Promise.all([
-    sb.from('profiles').select('id,email,role').order('email'),
-    sb.from('reviews').select('employee_id,employee_answers,manager_answers,status,submitted_at,updated_at')
-  ]);
-  const profiles = profilesRes.data || [];
-  const reviewMap = Object.fromEntries((reviewsRes.data||[]).map(r=>[r.employee_id,r]));
-  reviewsAllRows = profiles.map(p => {
-    const rev = reviewMap[p.id] || null;
-    const selfStatus = !rev ? 'none' : rev.status==='submitted'||rev.status==='manager_submitted' ? 'submitted' : 'draft';
-    const managerStatus = !rev?.manager_answers ? 'none' : rev.status==='manager_submitted' ? 'submitted' : 'draft';
-    return {id:p.id, email:p.email||p.id, role:p.role||'employee', selfStatus, managerStatus, review:rev};
-  });
-  renderReviewsMetrics();
-  renderReviewsTable();
+async function loadReviewsView() {
+  try {
+    const [profilesRes, reviewsRes] = await Promise.all([
+      sb.from('profiles').select('id,email,role').order('email'),
+      sb.from('reviews').select('employee_id,employee_answers,manager_answers,status,submitted_at,updated_at')
+    ]);
+    const profiles  = profilesRes.data || [];
+    const reviewMap = Object.fromEntries((reviewsRes.data || []).map(r => [r.employee_id, r]));
+
+    reviewsAllRows = profiles.map(p => {
+      const rev          = reviewMap[p.id] || null;
+      const selfStatus   = !rev ? 'none' : (rev.status === 'submitted' || rev.status === 'manager_submitted') ? 'submitted' : 'draft';
+      const managerStatus = !rev?.manager_answers ? 'none' : rev.status === 'manager_submitted' ? 'submitted' : 'draft';
+      return { id: p.id, email: p.email || p.id, role: p.role || 'employee', selfStatus, managerStatus, review: rev };
+    });
+
+    renderReviewsMetrics();
+    renderReviewsTable();
+  } catch (e) {
+    document.getElementById('reviews-table-wrap').innerHTML =
+      `<p style="font-size:13px;color:var(--color-text-warning)">${e.message}</p>`;
+  }
 }
 
-function renderReviewsMetrics(){
-  const total = reviewsAllRows.length;
-  const selfIn = reviewsAllRows.filter(r=>r.selfStatus==='submitted').length;
-  const managerIn = reviewsAllRows.filter(r=>r.managerStatus==='submitted').length;
-  const pct = total ? Math.round(selfIn/total*100) : 0;
+function renderReviewsMetrics() {
+  const total     = reviewsAllRows.length;
+  const selfIn    = reviewsAllRows.filter(r => r.selfStatus === 'submitted').length;
+  const managerIn = reviewsAllRows.filter(r => r.managerStatus === 'submitted').length;
+  const pct       = total ? Math.round(selfIn / total * 100) : 0;
   document.getElementById('reviews-metrics').innerHTML = [
-    {label:'Team members',value:total},
-    {label:'Self-reviews in',value:selfIn},
-    {label:'Manager reviews in',value:managerIn},
-    {label:'Completion',value:pct+'%'}
-  ].map(m=>`<div class="metric-card"><div class="label">${m.label}</div><div class="value">${m.value}</div></div>`).join('');
+    { label: 'Team members',       value: total },
+    { label: 'Self-reviews in',    value: selfIn },
+    { label: 'Manager reviews in', value: managerIn },
+    { label: 'Completion',         value: pct + '%' }
+  ].map(m => `<div class="metric-card"><div class="label">${m.label}</div><div class="value">${m.value}</div></div>`).join('');
 }
 
-function reviewBadge(status){
-  if(status==='submitted') return '<span class="badge badge-submitted">Submitted</span>';
-  if(status==='draft') return '<span class="badge badge-draft">Draft</span>';
+function reviewBadge(status) {
+  if (status === 'submitted') return '<span class="badge badge-submitted">Submitted</span>';
+  if (status === 'draft')     return '<span class="badge badge-draft">Draft</span>';
   return '<span class="badge badge-none">Not started</span>';
 }
 
-function renderReviewsTable(){
+function renderReviewsTable() {
   const roleF = document.getElementById('filter-role').value;
   const selfF = document.getElementById('filter-self').value;
-  const manF = document.getElementById('filter-manager-rev').value;
-  const rows = reviewsAllRows.filter(r => {
-    if(roleF && r.role!==roleF) return false;
-    if(selfF && r.selfStatus!==selfF) return false;
-    if(manF && r.managerStatus!==manF) return false;
+  const manF  = document.getElementById('filter-manager-rev').value;
+  const rows  = reviewsAllRows.filter(r => {
+    if (roleF && r.role !== roleF)              return false;
+    if (selfF && r.selfStatus !== selfF)         return false;
+    if (manF  && r.managerStatus !== manF)       return false;
     return true;
   });
   const wrap = document.getElementById('reviews-table-wrap');
-  if(!rows.length){wrap.innerHTML='<p style="font-size:13px;color:var(--color-text-tertiary)">No results.</p>';return;}
+  if (!rows.length) { wrap.innerHTML = '<p style="font-size:13px;color:var(--color-text-tertiary)">No results.</p>'; return; }
   wrap.innerHTML = `<table>
     <thead><tr><th>Email</th><th>Role</th><th>Self-review</th><th>Manager review</th><th></th></tr></thead>
-    <tbody>${rows.map(r=>`<tr>
+    <tbody>${rows.map(r => `<tr>
       <td>${r.email}</td>
       <td style="text-transform:capitalize">${r.role}</td>
       <td>${reviewBadge(r.selfStatus)}</td>
       <td>${reviewBadge(r.managerStatus)}</td>
-      <td style="text-align:right">${r.review?`<button class="view-link" data-review-id="${r.id}">View →</button>`:''}</td>
+      <td style="text-align:right">${r.review ? `<button class="view-link" data-review-id="${r.id}">View →</button>` : ''}</td>
     </tr>`).join('')}</tbody>
   </table>`;
 }
@@ -711,106 +1109,173 @@ function renderReviewsTable(){
 
 document.getElementById('reviews-table-wrap').addEventListener('click', e => {
   const btn = e.target.closest('[data-review-id]');
-  if(!btn) return;
-  const row = reviewsAllRows.find(r=>r.id===btn.dataset.reviewId);
-  if(row?.review) showReviewModal(row);
+  if (!btn) return;
+  const row = reviewsAllRows.find(r => r.id === btn.dataset.reviewId);
+  if (row?.review) showReviewModal(row);
 });
 
-function showReviewModal(row){
-  const rev = row.review, ea = rev.employee_answers||{}, ma = rev.manager_answers||{};
-  const selfFields = [['Name','employee_name'],['Job title','job_title'],['Performance over last 12 months','performance_reflection'],['Areas to improve','improvement_areas'],['Support needed','manager_support'],['Self-rating','overall']];
-  const managerFields = [['Strengths observed','strengths'],['Areas for development','development'],['Manager comments','comments'],['Manager rating','manager_rating']];
-  const fieldHtml = (fields,obj) => fields.filter(([,k])=>obj[k]).map(([label,k])=>`<div class="review-field"><div class="field-label">${label}</div><div class="field-value">${obj[k]}</div></div>`).join('') || '<p style="font-size:13px;color:var(--color-text-tertiary)">No answers yet.</p>';
+function showReviewModal(row) {
+  const rev = row.review, ea = rev.employee_answers || {}, ma = rev.manager_answers || {};
+  const fmtField = (label, value) => value
+    ? `<div class="review-field"><div class="field-label">${label}</div><div class="field-value">${value}</div></div>`
+    : '';
   document.getElementById('review-modal-body').innerHTML = `
     <h2>${row.email}</h2>
-    <p style="font-size:12px;color:var(--color-text-tertiary);margin:0 0 1.25rem">Updated: ${rev.updated_at?new Date(rev.updated_at).toLocaleDateString():'—'}</p>
+    <p style="font-size:12px;color:var(--color-text-tertiary);margin:0 0 1.25rem">Updated: ${rev.updated_at ? new Date(rev.updated_at).toLocaleDateString() : '—'}</p>
     <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-text-secondary);margin-bottom:10px">Self-review</div>
-    ${fieldHtml(selfFields,ea)}
+    ${fmtField('Name', ea.employee_name)}
+    ${fmtField('Job title', ea.job_title)}
+    ${fmtField('Performance over last 12 months', ea.performance_reflection)}
+    ${fmtField('Areas to improve', ea.improvement_areas)}
+    ${fmtField('Support needed', ea.manager_support)}
+    ${fmtField('What they enjoy', ea.enjoy)}
+    ${fmtField('How to improve', ea.how_to_improve)}
     <hr class="divider">
     <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-text-secondary);margin-bottom:10px">Manager review</div>
-    ${fieldHtml(managerFields,ma)}
+    ${fmtField('Strengths observed', ma.strengths)}
+    ${fmtField('Areas for development', ma.development)}
+    ${fmtField('Manager comments', ma.comments)}
+    ${fmtField('Manager rating', ma.manager_rating)}
   `;
-  document.getElementById('review-modal').style.display='flex';
+  document.getElementById('review-modal').style.display = 'flex';
 }
 
-document.getElementById('review-modal-close').onclick = () => document.getElementById('review-modal').style.display='none';
-document.getElementById('review-modal').addEventListener('click', e => { if(e.target===e.currentTarget) e.currentTarget.style.display='none'; });
+document.getElementById('review-modal-close').addEventListener('click', () => {
+  document.getElementById('review-modal').style.display = 'none';
+});
+document.getElementById('review-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
+});
 
-// ── Admin view ────────────────────────────────────────────────────────────────
-function showMsg(el,text,type=''){el.textContent=text;el.className='msg'+(type==='err'?' err':'');el.style.display='block';setTimeout(()=>{el.style.display='none';},4000);}
+// ── ADMIN VIEW ────────────────────────────────────────────────────────────────
+function showMsg(el, text, type) {
+  el.textContent = text;
+  el.className = 'msg' + (type === 'err' ? ' err' : '');
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
 
-async function loadAdminView(){
-  await Promise.all([loadCycles(), loadUsers()]);
+async function loadAdminView() {
+  try { await Promise.all([loadCycles(), loadUsers()]); } catch (e) { /* handled inside */ }
   document.getElementById('create-cycle-btn').onclick = createCycle;
   document.getElementById('invite-btn').onclick = sendInvite;
 }
 
-async function loadCycles(){
-  const {data,error} = await sb.from('review_cycles').select('*').order('created_at',{ascending:false});
+async function loadCycles() {
   const wrap = document.getElementById('cycles-table-wrap');
-  if(error){wrap.innerHTML=`<p class="msg err">${error.message}</p>`;return;}
-  if(!data?.length){wrap.innerHTML='<p style="font-size:13px;color:var(--color-text-tertiary)">No cycles yet.</p>';return;}
-  wrap.innerHTML=`<table><thead><tr><th>Name</th><th>Start</th><th>End</th><th>Status</th><th></th></tr></thead><tbody>${data.map(c=>`<tr>
-    <td>${c.name}</td><td>${c.start_date||'—'}</td><td>${c.end_date||'—'}</td>
-    <td><span class="badge ${c.status==='open'?'badge-open':'badge-closed'}">${c.status==='open'?'Open':'Closed'}</span></td>
-    <td style="text-align:right;display:flex;gap:6px;justify-content:flex-end;">
-      ${c.status==='open'?`<button data-cycle-close="${c.id}">Close</button>`:`<button data-cycle-open="${c.id}">Open</button>`}
-      <button class="danger" data-cycle-delete="${c.id}">Delete</button>
-    </td>
-  </tr>`).join('')}</tbody></table>`;
-  wrap.onclick = async e => {
-    const msg = document.getElementById('cycle-msg');
-    const o=e.target.closest('[data-cycle-open]'),cl=e.target.closest('[data-cycle-close]'),d=e.target.closest('[data-cycle-delete]');
-    if(o){const {error}=await sb.from('review_cycles').update({status:'open'}).eq('id',o.dataset.cycleOpen);if(error)showMsg(msg,error.message,'err');else{showMsg(msg,'Cycle opened.');loadCycles();}}
-    if(cl){const {error}=await sb.from('review_cycles').update({status:'closed'}).eq('id',cl.dataset.cycleClose);if(error)showMsg(msg,error.message,'err');else{showMsg(msg,'Cycle closed.');loadCycles();}}
-    if(d){if(!confirm('Delete this cycle?'))return;const {error}=await sb.from('review_cycles').delete().eq('id',d.dataset.cycleDelete);if(error)showMsg(msg,error.message,'err');else{showMsg(msg,'Deleted.');loadCycles();}}
-  };
+  try {
+    const { data, error } = await sb.from('review_cycles').select('*').order('created_at', { ascending: false });
+    if (error) { wrap.innerHTML = `<p class="msg err">${error.message}</p>`; return; }
+    if (!data?.length) { wrap.innerHTML = '<p style="font-size:13px;color:var(--color-text-tertiary)">No cycles yet.</p>'; return; }
+    wrap.innerHTML = `<table>
+      <thead><tr><th>Name</th><th>Start</th><th>End</th><th>Status</th><th></th></tr></thead>
+      <tbody>${data.map(c => `<tr>
+        <td>${c.name}</td>
+        <td>${c.start_date || '—'}</td>
+        <td>${c.end_date || '—'}</td>
+        <td><span class="badge ${c.status === 'open' ? 'badge-open' : 'badge-closed'}">${c.status === 'open' ? 'Open' : 'Closed'}</span></td>
+        <td style="text-align:right;display:flex;gap:6px;justify-content:flex-end;">
+          ${c.status === 'open'
+            ? `<button data-cycle-close="${c.id}">Close</button>`
+            : `<button data-cycle-open="${c.id}">Open</button>`}
+          <button class="danger" data-cycle-delete="${c.id}">Delete</button>
+        </td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+    wrap.onclick = async e => {
+      const msg = document.getElementById('cycle-msg');
+      const o  = e.target.closest('[data-cycle-open]');
+      const cl = e.target.closest('[data-cycle-close]');
+      const d  = e.target.closest('[data-cycle-delete]');
+      try {
+        if (o)  { const {error} = await sb.from('review_cycles').update({status:'open'}).eq('id', o.dataset.cycleOpen);   if (error) showMsg(msg, error.message, 'err'); else { showMsg(msg, 'Cycle opened.');  loadCycles(); } }
+        if (cl) { const {error} = await sb.from('review_cycles').update({status:'closed'}).eq('id', cl.dataset.cycleClose); if (error) showMsg(msg, error.message, 'err'); else { showMsg(msg, 'Cycle closed.');  loadCycles(); } }
+        if (d)  { if (!confirm('Delete this cycle?')) return; const {error} = await sb.from('review_cycles').delete().eq('id', d.dataset.cycleDelete); if (error) showMsg(msg, error.message, 'err'); else { showMsg(msg, 'Deleted.'); loadCycles(); } }
+      } catch (err) { showMsg(msg, err.message, 'err'); }
+    };
+  } catch (e) { wrap.innerHTML = `<p class="msg err">${e.message}</p>`; }
 }
 
-async function createCycle(){
-  const name=document.getElementById('cycle-name').value.trim(),start=document.getElementById('cycle-start').value,end=document.getElementById('cycle-end').value,msg=document.getElementById('cycle-msg');
-  if(!name){showMsg(msg,'Please enter a cycle name.','err');return;}
-  const {error}=await sb.from('review_cycles').insert({name,start_date:start||null,end_date:end||null,status:'closed'});
-  if(error)showMsg(msg,error.message,'err');
-  else{showMsg(msg,'Cycle created.');document.getElementById('cycle-name').value='';document.getElementById('cycle-start').value='';document.getElementById('cycle-end').value='';loadCycles();}
+async function createCycle() {
+  const name  = document.getElementById('cycle-name').value.trim();
+  const start = document.getElementById('cycle-start').value;
+  const end   = document.getElementById('cycle-end').value;
+  const msg   = document.getElementById('cycle-msg');
+  if (!name) { showMsg(msg, 'Please enter a cycle name.', 'err'); return; }
+  try {
+    const { error } = await sb.from('review_cycles').insert({ name, start_date: start || null, end_date: end || null, status: 'closed' });
+    if (error) showMsg(msg, error.message, 'err');
+    else {
+      showMsg(msg, 'Cycle created.');
+      document.getElementById('cycle-name').value  = '';
+      document.getElementById('cycle-start').value = '';
+      document.getElementById('cycle-end').value   = '';
+      loadCycles();
+    }
+  } catch (e) { showMsg(msg, e.message, 'err'); }
 }
 
-async function loadUsers(){
-  const {data,error}=await sb.from('profiles').select('id,email,role').order('email');
-  const wrap=document.getElementById('users-table-wrap');
-  if(error){wrap.innerHTML=`<p class="msg err">${error.message}</p>`;return;}
-  if(!data?.length){wrap.innerHTML='<p style="font-size:13px;color:var(--color-text-tertiary)">No users found.</p>';return;}
-  wrap.innerHTML=`<table><thead><tr><th>Email</th><th>Role</th><th></th></tr></thead><tbody>${data.map(u=>`<tr>
-    <td>${u.email||u.id}</td>
-    <td><select class="inline" data-user-role="${u.id}">
-      <option value="employee" ${u.role==='employee'?'selected':''}>Employee</option>
-      <option value="manager" ${u.role==='manager'?'selected':''}>Manager</option>
-      <option value="executive" ${u.role==='executive'?'selected':''}>Executive</option>
-    </select></td>
-    <td style="text-align:right"><button class="danger" data-user-remove="${u.id}" data-user-email="${u.email||u.id}">Remove</button></td>
-  </tr>`).join('')}</tbody></table>`;
-  wrap.addEventListener('change', async e => {
-    const sel=e.target.closest('[data-user-role]');if(!sel)return;
-    const {error}=await sb.from('profiles').update({role:sel.value}).eq('id',sel.dataset.userRole);
-    showMsg(document.getElementById('users-msg'),error?error.message:'Role updated.',error?'err':'');
-  });
-  wrap.addEventListener('click', async e => {
-    const btn=e.target.closest('[data-user-remove]');if(!btn)return;
-    if(!confirm(`Remove ${btn.dataset.userEmail}?`))return;
-    const r=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({action:'remove',userId:btn.dataset.userRemove})});
-    const d=await r.json();
-    if(d.ok){showMsg(document.getElementById('users-msg'),'User removed.');loadUsers();}
-    else showMsg(document.getElementById('users-msg'),d.error||'Could not remove user.','err');
-  });
+async function loadUsers() {
+  const wrap = document.getElementById('users-table-wrap');
+  try {
+    const { data, error } = await sb.from('profiles').select('id,email,role').order('email');
+    if (error) { wrap.innerHTML = `<p class="msg err">${error.message}</p>`; return; }
+    if (!data?.length) { wrap.innerHTML = '<p style="font-size:13px;color:var(--color-text-tertiary)">No users found.</p>'; return; }
+    wrap.innerHTML = `<table>
+      <thead><tr><th>Email</th><th>Role</th><th></th></tr></thead>
+      <tbody>${data.map(u => `<tr>
+        <td>${u.email || u.id}</td>
+        <td><select class="inline" data-user-role="${u.id}">
+          <option value="employee"  ${u.role === 'employee'  ? 'selected' : ''}>Employee</option>
+          <option value="manager"   ${u.role === 'manager'   ? 'selected' : ''}>Manager</option>
+          <option value="executive" ${u.role === 'executive' ? 'selected' : ''}>Executive</option>
+        </select></td>
+        <td style="text-align:right"><button class="danger" data-user-remove="${u.id}" data-user-email="${u.email || u.id}">Remove</button></td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+
+    wrap.addEventListener('change', async e => {
+      const sel = e.target.closest('[data-user-role]');
+      if (!sel) return;
+      try {
+        const { error } = await sb.from('profiles').update({ role: sel.value }).eq('id', sel.dataset.userRole);
+        showMsg(document.getElementById('users-msg'), error ? error.message : 'Role updated.', error ? 'err' : '');
+      } catch (err) { showMsg(document.getElementById('users-msg'), err.message, 'err'); }
+    });
+
+    wrap.addEventListener('click', async e => {
+      const btn = e.target.closest('[data-user-remove]');
+      if (!btn) return;
+      if (!confirm(`Remove ${btn.dataset.userEmail}?`)) return;
+      try {
+        const r = await fetch('/api/admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
+          body: JSON.stringify({ action: 'remove', userId: btn.dataset.userRemove })
+        });
+        const d = await r.json();
+        if (d.ok) { showMsg(document.getElementById('users-msg'), 'User removed.'); loadUsers(); }
+        else showMsg(document.getElementById('users-msg'), d.error || 'Could not remove user.', 'err');
+      } catch (err) { showMsg(document.getElementById('users-msg'), err.message, 'err'); }
+    });
+  } catch (e) { wrap.innerHTML = `<p class="msg err">${e.message}</p>`; }
 }
 
-async function sendInvite(){
-  const email=document.getElementById('invite-email').value.trim(),role=document.getElementById('invite-role').value,msg=document.getElementById('invite-msg');
-  if(!email){showMsg(msg,'Please enter an email.','err');return;}
-  const r=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({email,role})});
-  const d=await r.json();
-  if(d.ok){showMsg(msg,'Invitation sent to '+email+'.');document.getElementById('invite-email').value='';}
-  else showMsg(msg,d.error||'Could not send invite.','err');
+async function sendInvite() {
+  const email = document.getElementById('invite-email').value.trim();
+  const role  = document.getElementById('invite-role').value;
+  const msg   = document.getElementById('invite-msg');
+  if (!email) { showMsg(msg, 'Please enter an email.', 'err'); return; }
+  try {
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
+      body: JSON.stringify({ email, role })
+    });
+    const d = await r.json();
+    if (d.ok) { showMsg(msg, 'Invitation sent to ' + email + '.'); document.getElementById('invite-email').value = ''; }
+    else showMsg(msg, d.error || 'Could not send invite.', 'err');
+  } catch (e) { showMsg(msg, e.message, 'err'); }
 }
 </script>
 </body>
