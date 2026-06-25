@@ -422,6 +422,7 @@ document.getElementById('signout-btn').onclick = async e => {
 };
 
 async function boot(){
+  document.getElementById('signin-overlay').classList.add('hidden');
   const {data:profile} = await sb.from('profiles').select('id,role,email').eq('id',session.user.id).single();
   userRole = profile?.role || 'employee';
   userId = session.user.id;
