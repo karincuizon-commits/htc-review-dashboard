@@ -425,15 +425,22 @@ async function boot(){
   document.getElementById('signin-overlay').classList.add('hidden');
   userId = session.user.id;
   try {
-    const {data:profile} = await sb.from('profiles').select('id,role,email').eq('id',session.user.id).maybeSingle();
+    const {data:profile, error:profileErr} = await sb.from('profiles').select('id,role,email').eq('id',session.user.id).maybeSingle();
+    if(profileErr) console.warn('Profile fetch error:', profileErr.message);
     userRole = profile?.role || 'employee';
   } catch(e) {
+    console.warn('Profile fetch threw:', e);
     userRole = 'employee';
   }
   setupNav(userRole);
   document.getElementById('app-nav').style.display = '';
   const hash = (location.hash && location.hash !== '#') ? location.hash : (userRole === 'employee' ? '#form' : '#home');
-  navigate(hash);
+  try {
+    navigate(hash);
+  } catch(e) {
+    document.body.innerHTML += `<div style="position:fixed;bottom:1rem;left:1rem;right:1rem;background:#faeeda;color:#633806;padding:1rem;border-radius:8px;font-size:13px;z-index:999"><strong>Error:</strong> ${e.message}</div>`;
+    console.error('navigate error:', e);
+  }
   window.addEventListener('hashchange', () => navigate(location.hash));
 }
 
