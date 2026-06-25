@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reviews Overview — HTC Performance Review</title>
+<style>
+:root{
+  --color-background-primary:#ffffff;
+  --color-background-secondary:#f5f4f0;
+  --color-background-tertiary:#faf9f6;
+  --color-background-info:#e6f1fb;
+  --color-background-success:#eaf3de;
+  --color-background-warning:#faeeda;
+  --color-text-primary:#1a1a1a;
+  --color-text-secondary:#5f5e5a;
+  --color-text-tertiary:#888780;
+  --color-text-info:#0c447c;
+  --color-text-success:#27500a;
+  --color-text-warning:#633806;
+  --color-border-tertiary:rgba(0,0,0,0.12);
+  --color-border-info:#378ADD;
+  --radius-md:8px;
+  --radius-lg:12px;
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --color-background-primary:#1e1e1c;
+    --color-background-secondary:#2a2a27;
+    --color-background-tertiary:#161615;
+    --color-background-info:#0c447c;
+    --color-background-success:#27500a;
+    --color-background-warning:#633806;
+    --color-text-primary:#f1efe8;
+    --color-text-secondary:#b4b2a9;
+    --color-text-tertiary:#888780;
+    --color-text-info:#b5d4f4;
+    --color-text-success:#c0dd97;
+    --color-text-warning:#fac775;
+    --color-border-tertiary:rgba(255,255,255,0.15);
+    --color-border-info:#85b7eb;
+  }
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--color-background-tertiary);color:var(--color-text-primary);font-family:var(--font-sans);padding:0 0 4rem;}
+nav{background:var(--color-background-primary);border-bottom:1px solid var(--color-border-tertiary);padding:0 1.25rem;}
+nav ul{display:flex;gap:0;list-style:none;margin:0;padding:0;max-width:960px;margin:0 auto;}
+nav a{display:block;padding:12px 14px;font-size:13px;color:var(--color-text-secondary);text-decoration:none;border-bottom:2px solid transparent;}
+nav a:hover{color:var(--color-text-primary);}
+nav a.active{color:var(--color-text-primary);font-weight:500;border-bottom-color:var(--color-text-primary);}
+.wrap{max-width:960px;margin:0 auto;padding:2rem 1.25rem 0;}
+.page-header{margin-bottom:2rem;}
+.page-header h1{font-size:21px;font-weight:600;margin:0 0 4px;}
+.page-header p{font-size:13px;color:var(--color-text-secondary);margin:0;}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:2rem;}
+.metric-card{background:var(--color-background-secondary);border-radius:var(--radius-md);padding:1rem;}
+.metric-card .label{font-size:13px;color:var(--color-text-secondary);margin-bottom:4px;}
+.metric-card .value{font-size:24px;font-weight:500;}
+.section-label{font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:10px;}
+.card{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem;}
+.filters{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;}
+select.filter{font-family:inherit;font-size:12px;border:1px solid var(--color-border-tertiary);border-radius:var(--radius-md);padding:6px 10px;background:var(--color-background-primary);color:var(--color-text-primary);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;font-weight:500;color:var(--color-text-secondary);padding:6px 8px;border-bottom:1px solid var(--color-border-tertiary);white-space:nowrap;}
+td{padding:8px 8px;border-bottom:1px solid var(--color-border-tertiary);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--color-background-secondary);}
+.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:500;padding:2px 8px;border-radius:var(--radius-md);white-space:nowrap;}
+.badge-submitted{background:var(--color-background-success);color:var(--color-text-success);}
+.badge-draft{background:var(--color-background-info);color:var(--color-text-info);}
+.badge-none{background:var(--color-background-secondary);color:var(--color-text-tertiary);}
+.view-link{font-size:12px;color:var(--color-text-info);text-decoration:none;cursor:pointer;background:none;border:none;font-family:inherit;padding:0;}
+.view-link:hover{text-decoration:underline;}
+/* Modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:100;padding:1rem;}
+.modal{background:var(--color-background-primary);border-radius:var(--radius-lg);padding:1.5rem;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;position:relative;}
+.modal h2{font-size:16px;font-weight:600;margin:0 0 1rem;}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:18px;cursor:pointer;color:var(--color-text-secondary);line-height:1;}
+.review-field{margin-bottom:1rem;}
+.review-field .field-label{font-size:11px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;}
+.review-field .field-value{font-size:13px;line-height:1.5;color:var(--color-text-primary);background:var(--color-background-secondary);border-radius:var(--radius-md);padding:8px 10px;}
+.divider{border:none;border-top:1px solid var(--color-border-tertiary);margin:1.25rem 0;}
+</style>
+</head>
+<body>
+<nav>
+  <ul>
+    <li><a href="index.html">Dashboard</a></li>
+    <li><a href="dashboard.html" class="active">Reviews</a></li>
+    <li><a href="form.html">My review</a></li>
+    <li><a href="admin.html">Admin</a></li>
+  </ul>
+</nav>
+<div class="wrap">
+  <div class="page-header">
+    <h1>Reviews overview</h1>
+    <p>Org-wide completion status for the 2026 performance review cycle.</p>
+  </div>
+
+  <div id="metrics" class="metrics"></div>
+
+  <div class="section-label">All reviews</div>
+  <div class="card">
+    <div class="filters">
+      <select class="filter" id="filter-role">
+        <option value="">All roles</option>
+        <option value="employee">Employee</option>
+        <option value="manager">Manager</option>
+        <option value="executive">Executive</option>
+      </select>
+      <select class="filter" id="filter-self">
+        <option value="">Any self-review</option>
+        <option value="submitted">Self-review submitted</option>
+        <option value="draft">Self-review draft</option>
+        <option value="none">No self-review</option>
+      </select>
+      <select class="filter" id="filter-manager">
+        <option value="">Any manager review</option>
+        <option value="submitted">Manager review submitted</option>
+        <option value="draft">Manager review draft</option>
+        <option value="none">No manager review</option>
+      </select>
+    </div>
+    <div id="table-wrap"><p style="font-size:13px;color:var(--color-text-tertiary)">Loading…</p></div>
+  </div>
+</div>
+
+<div id="modal" style="display:none;" class="modal-backdrop">
+  <div class="modal">
+    <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script type="module">
+import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
+const sb = createClient('https://nibvlmriymjlauzklnbh.supabase.co','sb_publishable_-OLUMh-8YwntFR4xl6GFUA_wKHP-oW0');
+
+const {data:{session}} = await sb.auth.getSession();
+if(!session){
+  document.body.innerHTML = '<main style="max-width:520px;margin:10vh auto;padding:1.25rem;font-family:system-ui"><h1>HTC Performance Review</h1><p>Sign in to continue.</p><div style="display:flex;flex-direction:column;gap:8px"><input id="e" placeholder="Email" type="email" style="padding:8px;border:1px solid #ccc;border-radius:6px"><input id="p" placeholder="Password" type="password" style="padding:8px;border:1px solid #ccc;border-radius:6px"><button id="in" style="padding:8px;cursor:pointer">Sign in</button><p id="m" style="color:red;margin:0"></p></div></main>';
+  document.querySelector('#in').onclick = async () => {
+    const r = await sb.auth.signInWithPassword({email:e.value,password:p.value});
+    m.textContent = r.error ? r.error.message : 'Signed in. Reloading…';
+    if(!r.error) location.reload();
+  };
+  throw new Error('not signed in');
+}
+
+const {data:me} = await sb.from('profiles').select('role').eq('id',session.user.id).single();
+if(me?.role !== 'executive' && me?.role !== 'manager'){
+  document.querySelector('.wrap').innerHTML = '<p style="margin-top:2rem;color:var(--color-text-secondary)">This overview is only accessible to managers and executives.</p>';
+  throw new Error('unauthorized');
+}
+
+let allRows = [];
+
+async function load(){
+  const [profilesRes, reviewsRes] = await Promise.all([
+    sb.from('profiles').select('id,email,role').order('email'),
+    sb.from('reviews').select('employee_id,employee_answers,manager_answers,status,submitted_at,updated_at')
+  ]);
+
+  const profiles = profilesRes.data || [];
+  const reviews = reviewsRes.data || [];
+  const reviewMap = Object.fromEntries(reviews.map(r=>[r.employee_id,r]));
+
+  allRows = profiles.map(p=>{
+    const rev = reviewMap[p.id] || null;
+    const selfStatus = !rev ? 'none' : (rev.status === 'submitted' ? 'submitted' : 'draft');
+    const managerStatus = !rev?.manager_answers ? 'none' : (rev.status === 'manager_submitted' ? 'submitted' : 'draft');
+    return {id:p.id, email:p.email||p.id, role:p.role||'employee', selfStatus, managerStatus, review:rev};
+  });
+
+  renderMetrics();
+  renderTable();
+}
+
+function renderMetrics(){
+  const total = allRows.length;
+  const selfSubmitted = allRows.filter(r=>r.selfStatus==='submitted').length;
+  const managerDone = allRows.filter(r=>r.managerStatus==='submitted').length;
+  const pct = total ? Math.round(selfSubmitted/total*100) : 0;
+  document.getElementById('metrics').innerHTML = [
+    {label:'Team members',value:total},
+    {label:'Self-reviews in',value:selfSubmitted},
+    {label:'Manager reviews in',value:managerDone},
+    {label:'Self-review completion',value:pct+'%'}
+  ].map(m=>`<div class="metric-card"><div class="label">${m.label}</div><div class="value">${m.value}</div></div>`).join('');
+}
+
+function badge(status){
+  if(status==='submitted') return '<span class="badge badge-submitted">Submitted</span>';
+  if(status==='draft') return '<span class="badge badge-draft">Draft</span>';
+  return '<span class="badge badge-none">Not started</span>';
+}
+
+function renderTable(){
+  const roleFilter = document.getElementById('filter-role').value;
+  const selfFilter = document.getElementById('filter-self').value;
+  const managerFilter = document.getElementById('filter-manager').value;
+
+  const rows = allRows.filter(r=>{
+    if(roleFilter && r.role !== roleFilter) return false;
+    if(selfFilter && r.selfStatus !== selfFilter) return false;
+    if(managerFilter && r.managerStatus !== managerFilter) return false;
+    return true;
+  });
+
+  const wrap = document.getElementById('table-wrap');
+  if(!rows.length){wrap.innerHTML='<p style="font-size:13px;color:var(--color-text-tertiary)">No results match your filters.</p>';return;}
+
+  wrap.innerHTML = `<table>
+    <thead><tr>
+      <th>Email</th>
+      <th>Role</th>
+      <th>Self-review</th>
+      <th>Manager review</th>
+      <th></th>
+    </tr></thead>
+    <tbody>${rows.map(r=>`<tr>
+      <td>${r.email}</td>
+      <td style="text-transform:capitalize">${r.role}</td>
+      <td>${badge(r.selfStatus)}</td>
+      <td>${badge(r.managerStatus)}</td>
+      <td style="text-align:right">${r.review ? `<button class="view-link" data-view="${r.id}">View →</button>` : ''}</td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+document.getElementById('table-wrap').addEventListener('click', e=>{
+  const btn = e.target.closest('[data-view]');
+  if(!btn) return;
+  const row = allRows.find(r=>r.id===btn.dataset.view);
+  if(!row?.review) return;
+  showModal(row);
+});
+
+function showModal(row){
+  const rev = row.review;
+  const ea = rev.employee_answers || {};
+  const ma = rev.manager_answers || {};
+
+  const selfFields = [
+    {label:'Name',key:'employee_name'},
+    {label:'Job title',key:'job_title'},
+    {label:'Performance over last 12 months',key:'performance_reflection'},
+    {label:'Areas to improve',key:'improvement_areas'},
+    {label:'Support needed from manager',key:'manager_support'},
+    {label:'Overall self-rating',key:'overall'}
+  ];
+
+  const managerFields = [
+    {label:'Manager rating',key:'manager_rating'},
+    {label:'Strengths observed',key:'strengths'},
+    {label:'Areas for development',key:'development'},
+    {label:'Manager comments',key:'comments'}
+  ];
+
+  const selfHtml = selfFields.filter(f=>ea[f.key]).map(f=>`
+    <div class="review-field">
+      <div class="field-label">${f.label}</div>
+      <div class="field-value">${ea[f.key]}</div>
+    </div>`).join('') || '<p style="font-size:13px;color:var(--color-text-tertiary)">No self-review answers yet.</p>';
+
+  const managerHtml = managerFields.filter(f=>ma[f.key]).map(f=>`
+    <div class="review-field">
+      <div class="field-label">${f.label}</div>
+      <div class="field-value">${ma[f.key]}</div>
+    </div>`).join('') || '<p style="font-size:13px;color:var(--color-text-tertiary)">No manager review yet.</p>';
+
+  document.getElementById('modal-body').innerHTML = `
+    <h2>${row.email}</h2>
+    <p style="font-size:12px;color:var(--color-text-tertiary);margin:0 0 1.25rem">Last updated: ${rev.updated_at ? new Date(rev.updated_at).toLocaleDateString() : '—'}</p>
+    <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-text-secondary);margin-bottom:10px">Self-review</div>
+    ${selfHtml}
+    <hr class="divider">
+    <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-text-secondary);margin-bottom:10px">Manager review</div>
+    ${managerHtml}
+  `;
+  document.getElementById('modal').style.display = 'flex';
+}
+
+document.getElementById('modal-close').onclick = () => document.getElementById('modal').style.display = 'none';
+document.getElementById('modal').addEventListener('click', e=>{if(e.target===e.currentTarget) e.currentTarget.style.display='none';});
+
+['filter-role','filter-self','filter-manager'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', renderTable);
+});
+
+load();
+</script>
+</body>
+</html>

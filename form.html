@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Performance Review Form — HTC</title>
+<style>
+:root{
+  --color-background-primary:#ffffff;
+  --color-background-secondary:#f5f4f0;
+  --color-background-tertiary:#faf9f6;
+  --color-background-info:#e6f1fb;
+  --color-background-success:#eaf3de;
+  --color-background-warning:#faeeda;
+  --color-text-primary:#1a1a1a;
+  --color-text-secondary:#5f5e5a;
+  --color-text-tertiary:#888780;
+  --color-text-info:#0c447c;
+  --color-text-success:#27500a;
+  --color-text-warning:#633806;
+  --color-border-tertiary:rgba(0,0,0,0.12);
+  --color-border-info:#378ADD;
+  --radius-md:8px;
+  --radius-lg:12px;
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --color-background-primary:#1e1e1c;
+    --color-background-secondary:#2a2a27;
+    --color-background-tertiary:#161615;
+    --color-background-info:#0c447c;
+    --color-background-success:#27500a;
+    --color-background-warning:#633806;
+    --color-text-primary:#f1efe8;
+    --color-text-secondary:#b4b2a9;
+    --color-text-tertiary:#888780;
+    --color-text-info:#b5d4f4;
+    --color-text-success:#c0dd97;
+    --color-text-warning:#fac775;
+    --color-border-tertiary:rgba(255,255,255,0.15);
+    --color-border-info:#85b7eb;
+  }
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--color-background-tertiary);color:var(--color-text-primary);font-family:var(--font-sans);padding:0 0 4rem;}
+nav{background:var(--color-background-primary);border-bottom:1px solid var(--color-border-tertiary);padding:0 1.25rem;}
+nav ul{display:flex;gap:0;list-style:none;margin:0;padding:0;max-width:760px;margin:0 auto;}
+nav a{display:block;padding:12px 14px;font-size:13px;color:var(--color-text-secondary);text-decoration:none;border-bottom:2px solid transparent;}
+nav a:hover{color:var(--color-text-primary);}
+nav a.active{color:var(--color-text-primary);font-weight:500;border-bottom-color:var(--color-text-primary);}
+.wrap{max-width:760px;margin:0 auto;padding:2rem 1.25rem 0;}
+.page-header{margin-bottom:2rem;}
+.page-header h1{font-size:21px;font-weight:600;margin:0 0 4px;}
+.page-header p{font-size:13px;color:var(--color-text-secondary);margin:0;}
+.card{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1rem;}
+.card h2{font-size:16px;font-weight:600;margin:0 0 4px;}
+.card .subtitle{font-size:13px;color:var(--color-text-secondary);margin:0 0 1.5rem;}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:1.25rem;}
+.field label{font-size:13px;font-weight:500;}
+.field .hint{font-size:12px;color:var(--color-text-tertiary);margin-top:-2px;}
+.field input,.field textarea,.field select{
+  font-family:inherit;font-size:14px;border:1px solid var(--color-border-tertiary);
+  border-radius:var(--radius-md);padding:9px 11px;background:var(--color-background-primary);
+  color:var(--color-text-primary);width:100%;
+}
+.field input:focus,.field textarea:focus,.field select:focus{outline:2px solid var(--color-border-info);outline-offset:1px;}
+.field textarea{min-height:100px;resize:vertical;line-height:1.5;}
+.field input:disabled,.field textarea:disabled,.field select:disabled{background:var(--color-background-secondary);color:var(--color-text-secondary);cursor:not-allowed;}
+.actions{display:flex;gap:10px;align-items:center;margin-top:1.5rem;flex-wrap:wrap;}
+button{font-family:inherit;font-size:13px;background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:var(--radius-md);padding:8px 14px;cursor:pointer;color:var(--color-text-primary);}
+button:hover{background:var(--color-background-secondary);}
+button:active{transform:scale(0.98);}
+button.primary{background:var(--color-text-primary);color:var(--color-background-primary);border-color:var(--color-text-primary);}
+button.primary:hover{opacity:0.85;}
+button:disabled{opacity:0.45;cursor:not-allowed;transform:none;}
+.status-banner{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius-md);font-size:13px;margin-bottom:1.5rem;}
+.status-submitted{background:var(--color-background-success);color:var(--color-text-success);}
+.status-draft{background:var(--color-background-info);color:var(--color-text-info);}
+.section-label{font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:10px;margin-top:2rem;}
+/* Employee picker for managers */
+.employee-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem;}
+.employee-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--color-border-tertiary);border-radius:var(--radius-md);cursor:pointer;background:var(--color-background-primary);}
+.employee-item:hover{background:var(--color-background-secondary);}
+.employee-item.active{border-color:var(--color-border-info);background:var(--color-background-info);}
+.employee-item .emp-email{font-size:13px;}
+.employee-item .emp-status{font-size:12px;color:var(--color-text-tertiary);}
+.badge{display:inline-flex;font-size:11px;font-weight:500;padding:2px 8px;border-radius:var(--radius-md);white-space:nowrap;}
+.badge-submitted{background:var(--color-background-success);color:var(--color-text-success);}
+.badge-draft{background:var(--color-background-info);color:var(--color-text-info);}
+.badge-none{background:var(--color-background-secondary);color:var(--color-text-tertiary);}
+.back-link{font-size:13px;color:var(--color-text-secondary);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;font-family:inherit;}
+.msg{font-size:13px;color:var(--color-text-success);}
+.msg.err{color:var(--color-text-warning);}
+</style>
+</head>
+<body>
+<nav>
+  <ul>
+    <li><a href="index.html">Dashboard</a></li>
+    <li><a href="dashboard.html">Reviews</a></li>
+    <li><a href="form.html" class="active">My review</a></li>
+    <li><a href="admin.html">Admin</a></li>
+  </ul>
+</nav>
+<div class="wrap" id="main-wrap">
+  <p style="font-size:13px;color:var(--color-text-tertiary);margin-top:2rem;">Loading…</p>
+</div>
+
+<script type="module">
+import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
+const sb = createClient('https://nibvlmriymjlauzklnbh.supabase.co','sb_publishable_-OLUMh-8YwntFR4xl6GFUA_wKHP-oW0');
+
+const {data:{session}} = await sb.auth.getSession();
+if(!session){
+  document.body.innerHTML = '<main style="max-width:520px;margin:10vh auto;padding:1.25rem;font-family:system-ui"><h1>HTC Performance Review</h1><p>Sign in to continue.</p><div style="display:flex;flex-direction:column;gap:8px"><input id="e" placeholder="Email" type="email" style="padding:8px;border:1px solid #ccc;border-radius:6px"><input id="p" placeholder="Password" type="password" style="padding:8px;border:1px solid #ccc;border-radius:6px"><button id="in" style="padding:8px;cursor:pointer">Sign in</button><p id="m" style="color:red;margin:0"></p></div></main>';
+  document.querySelector('#in').onclick = async () => {
+    const r = await sb.auth.signInWithPassword({email:e.value,password:p.value});
+    m.textContent = r.error ? r.error.message : 'Signed in. Reloading…';
+    if(!r.error) location.reload();
+  };
+  throw new Error('not signed in');
+}
+
+const {data:me} = await sb.from('profiles').select('id,email,role').eq('id',session.user.id).single();
+const wrap = document.getElementById('main-wrap');
+
+if(me?.role === 'employee'){
+  renderEmployeeForm();
+} else if(me?.role === 'manager' || me?.role === 'executive'){
+  renderManagerView();
+} else {
+  wrap.innerHTML = '<p style="margin-top:2rem;color:var(--color-text-secondary)">Your account does not have a role assigned. Contact your administrator.</p>';
+}
+
+// ─── Employee self-review ───────────────────────────────────────────────────
+
+async function renderEmployeeForm(){
+  const {data:existing} = await sb.from('reviews').select('*').eq('employee_id',me.id).maybeSingle();
+  const ea = existing?.employee_answers || {};
+  const locked = existing?.status === 'submitted';
+
+  wrap.innerHTML = `
+    <div class="page-header">
+      <h1>My performance review</h1>
+      <p>Complete your self-assessment before your discussion with your manager.</p>
+    </div>
+    ${locked ? '<div class="status-banner status-submitted">✓ Your self-review has been submitted. Contact your manager if you need to make changes.</div>' : (existing ? '<div class="status-banner status-draft">Your review is saved as a draft. Submit it when you\'re ready.</div>' : '')}
+    <div class="card">
+      <h2>Self-review</h2>
+      <p class="subtitle">2026 annual performance review</p>
+      <form id="self-review-form">
+        <div class="field">
+          <label for="employee_name">Your name</label>
+          <input id="employee_name" name="employee_name" type="text" value="${ea.employee_name||''}" ${locked?'disabled':''} required>
+        </div>
+        <div class="field">
+          <label for="job_title">Job title</label>
+          <input id="job_title" name="job_title" type="text" value="${ea.job_title||''}" ${locked?'disabled':''} required>
+        </div>
+        <div class="field">
+          <label for="performance_reflection">How have you performed over the last 12 months?</label>
+          <p class="hint">Describe your key contributions, achievements, and results.</p>
+          <textarea id="performance_reflection" name="performance_reflection" ${locked?'disabled':''} required>${ea.performance_reflection||''}</textarea>
+        </div>
+        <div class="field">
+          <label for="improvement_areas">Areas to improve</label>
+          <p class="hint">What skills or behaviours would you like to develop?</p>
+          <textarea id="improvement_areas" name="improvement_areas" ${locked?'disabled':''} required>${ea.improvement_areas||''}</textarea>
+        </div>
+        <div class="field">
+          <label for="manager_support">Support needed from your manager</label>
+          <p class="hint">What could your manager do to help you succeed?</p>
+          <textarea id="manager_support" name="manager_support" ${locked?'disabled':''}>${ea.manager_support||''}</textarea>
+        </div>
+        <div class="field">
+          <label for="overall">Overall self-rating (1–5)</label>
+          <select id="overall" name="overall" ${locked?'disabled':''} required>
+            <option value="">Choose a rating</option>
+            <option value="1" ${ea.overall==='1'?'selected':''}>1 — Unsatisfactory</option>
+            <option value="2" ${ea.overall==='2'?'selected':''}>2 — Needs improvement</option>
+            <option value="3" ${ea.overall==='3'?'selected':''}>3 — Meets expectations</option>
+            <option value="4" ${ea.overall==='4'?'selected':''}>4 — Exceeds expectations</option>
+            <option value="5" ${ea.overall==='5'?'selected':''}>5 — Always exceeds</option>
+          </select>
+        </div>
+        ${!locked ? `<div class="actions">
+          <button type="submit" name="action" value="draft">Save draft</button>
+          <button type="submit" name="action" value="submit" class="primary">Submit review</button>
+          <span id="form-msg" class="msg"></span>
+        </div>` : ''}
+      </form>
+    </div>
+  `;
+
+  if(locked) return;
+
+  document.getElementById('self-review-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const action = e.submitter?.value || 'draft';
+    const answers = Object.fromEntries(formData);
+    delete answers.action;
+
+    const msg = document.getElementById('form-msg');
+    const submitBtn = e.target.querySelector('button[value="submit"]');
+    const draftBtn = e.target.querySelector('button[value="draft"]');
+    submitBtn.disabled = true;
+    draftBtn.disabled = true;
+
+    if(action === 'submit' && !confirm('Submit your self-review? You will not be able to edit it after submitting.')) {
+      submitBtn.disabled = false;
+      draftBtn.disabled = false;
+      return;
+    }
+
+    const payload = {
+      employee_id: me.id,
+      employee_answers: answers,
+      updated_at: new Date().toISOString(),
+      ...(action === 'submit' ? {status:'submitted', submitted_at: new Date().toISOString()} : {status:'draft'})
+    };
+
+    const {error} = await sb.from('reviews').upsert(payload, {onConflict:'employee_id'});
+    if(error){
+      msg.textContent = error.message;
+      msg.className = 'msg err';
+      submitBtn.disabled = false;
+      draftBtn.disabled = false;
+    } else {
+      if(action === 'submit'){
+        renderEmployeeForm();
+      } else {
+        msg.textContent = 'Draft saved.';
+        msg.className = 'msg';
+        submitBtn.disabled = false;
+        draftBtn.disabled = false;
+      }
+    }
+  });
+}
+
+// ─── Manager review ─────────────────────────────────────────────────────────
+
+async function renderManagerView(selectedId = null){
+  const [{data:employees},{data:reviews}] = await Promise.all([
+    sb.from('profiles').select('id,email,role').neq('id',me.id).order('email'),
+    sb.from('reviews').select('*')
+  ]);
+
+  const reviewMap = Object.fromEntries((reviews||[]).map(r=>[r.employee_id,r]));
+
+  function selfBadge(id){
+    const rev = reviewMap[id];
+    if(!rev) return '<span class="badge badge-none">No self-review</span>';
+    if(rev.status==='submitted') return '<span class="badge badge-submitted">Self-review in</span>';
+    return '<span class="badge badge-draft">Draft</span>';
+  }
+
+  const listHtml = (employees||[]).map(emp=>`
+    <div class="employee-item ${emp.id===selectedId?'active':''}" data-emp-id="${emp.id}">
+      <div>
+        <div class="emp-email">${emp.email||emp.id}</div>
+        <div class="emp-status" style="text-transform:capitalize">${emp.role||'employee'}</div>
+      </div>
+      ${selfBadge(emp.id)}
+    </div>
+  `).join('');
+
+  let formHtml = '';
+  if(selectedId){
+    const emp = (employees||[]).find(e=>e.id===selectedId);
+    const rev = reviewMap[selectedId];
+    const ea = rev?.employee_answers || {};
+    const ma = rev?.manager_answers || {};
+    const managerLocked = rev?.status === 'manager_submitted';
+
+    const selfSection = rev ? `
+      <div class="section-label" style="margin-top:0">Their self-review</div>
+      ${[
+        ['Name', ea.employee_name],
+        ['Job title', ea.job_title],
+        ['Performance reflection', ea.performance_reflection],
+        ['Areas to improve', ea.improvement_areas],
+        ['Support needed', ea.manager_support],
+        ['Self-rating', ea.overall ? `${ea.overall} / 5` : null]
+      ].filter(([,v])=>v).map(([label,val])=>`
+        <div class="field">
+          <label style="font-weight:400;color:var(--color-text-secondary)">${label}</label>
+          <div style="font-size:14px;background:var(--color-background-secondary);border-radius:var(--radius-md);padding:9px 11px;line-height:1.5">${val}</div>
+        </div>
+      `).join('')}
+      <hr style="border:none;border-top:1px solid var(--color-border-tertiary);margin:1.5rem 0;">
+    ` : `<p style="font-size:13px;color:var(--color-text-tertiary);margin-bottom:1.5rem">This employee has not submitted a self-review yet. You can still complete your manager assessment.</p>`;
+
+    formHtml = `
+      <div class="card" id="manager-form-card">
+        <button class="back-link" id="back-btn" style="margin-bottom:1rem">← Back to team list</button>
+        <h2>${emp?.email || selectedId}</h2>
+        <p class="subtitle">Manager assessment — 2026 annual review</p>
+        ${managerLocked ? '<div class="status-banner status-submitted">✓ Your manager review has been submitted.</div>' : ''}
+        ${selfSection}
+        <div class="section-label" style="margin-top:0">Your assessment</div>
+        <form id="manager-review-form">
+          <div class="field">
+            <label for="strengths">Strengths observed</label>
+            <p class="hint">What has this person done particularly well this year?</p>
+            <textarea id="strengths" name="strengths" ${managerLocked?'disabled':''}>${ma.strengths||''}</textarea>
+          </div>
+          <div class="field">
+            <label for="development">Areas for development</label>
+            <p class="hint">What should they focus on improving?</p>
+            <textarea id="development" name="development" ${managerLocked?'disabled':''}>${ma.development||''}</textarea>
+          </div>
+          <div class="field">
+            <label for="comments">Additional comments</label>
+            <textarea id="comments" name="comments" ${managerLocked?'disabled':''}>${ma.comments||''}</textarea>
+          </div>
+          <div class="field">
+            <label for="manager_rating">Your rating (1–5)</label>
+            <select id="manager_rating" name="manager_rating" ${managerLocked?'disabled':''}>
+              <option value="">Choose a rating</option>
+              <option value="1" ${ma.manager_rating==='1'?'selected':''}>1 — Unsatisfactory</option>
+              <option value="2" ${ma.manager_rating==='2'?'selected':''}>2 — Needs improvement</option>
+              <option value="3" ${ma.manager_rating==='3'?'selected':''}>3 — Meets expectations</option>
+              <option value="4" ${ma.manager_rating==='4'?'selected':''}>4 — Exceeds expectations</option>
+              <option value="5" ${ma.manager_rating==='5'?'selected':''}>5 — Always exceeds</option>
+            </select>
+          </div>
+          ${!managerLocked ? `<div class="actions">
+            <button type="submit" name="action" value="draft">Save draft</button>
+            <button type="submit" name="action" value="submit" class="primary">Submit assessment</button>
+            <span id="manager-msg" class="msg"></span>
+          </div>` : ''}
+        </form>
+      </div>
+    `;
+  }
+
+  wrap.innerHTML = `
+    <div class="page-header">
+      <h1>Manager review</h1>
+      <p>Complete your assessment for each team member.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:${selectedId?'280px 1fr':'1fr'};gap:1rem;align-items:start;">
+      <div>
+        <div class="section-label" style="margin-top:0">Team members</div>
+        <div class="employee-list" id="employee-list">${listHtml}</div>
+      </div>
+      ${selectedId ? `<div id="form-area">${formHtml}</div>` : ''}
+    </div>
+    ${!selectedId ? '<p style="font-size:13px;color:var(--color-text-tertiary)">Select a team member to begin their assessment.</p>' : ''}
+  `;
+
+  document.getElementById('employee-list').addEventListener('click', e=>{
+    const item = e.target.closest('[data-emp-id]');
+    if(item) renderManagerView(item.dataset.empId);
+  });
+
+  if(selectedId){
+    document.getElementById('back-btn').onclick = () => renderManagerView(null);
+
+    document.getElementById('manager-review-form').addEventListener('submit', async e=>{
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const action = e.submitter?.value || 'draft';
+      const answers = Object.fromEntries(formData);
+      delete answers.action;
+
+      const msg = document.getElementById('manager-msg');
+      const submitBtn = e.target.querySelector('button[value="submit"]');
+      const draftBtn = e.target.querySelector('button[value="draft"]');
+      submitBtn.disabled = true;
+      draftBtn.disabled = true;
+
+      if(action === 'submit' && !confirm('Submit your manager assessment? You will not be able to edit it after submitting.')){
+        submitBtn.disabled = false;
+        draftBtn.disabled = false;
+        return;
+      }
+
+      const existing = reviewMap[selectedId];
+      const payload = {
+        employee_id: selectedId,
+        manager_answers: answers,
+        updated_at: new Date().toISOString(),
+        ...(action === 'submit' ? {status:'manager_submitted'} : {}),
+        ...(existing ? {} : {status: action==='submit'?'manager_submitted':'draft', submitted_at: null})
+      };
+
+      const {error} = await sb.from('reviews').upsert(payload, {onConflict:'employee_id'});
+      if(error){
+        msg.textContent = error.message;
+        msg.className = 'msg err';
+        submitBtn.disabled = false;
+        draftBtn.disabled = false;
+      } else {
+        if(action === 'submit'){
+          renderManagerView(selectedId);
+        } else {
+          msg.textContent = 'Draft saved.';
+          msg.className = 'msg';
+          submitBtn.disabled = false;
+          draftBtn.disabled = false;
+        }
+      }
+    });
+  }
+}
+</script>
+</body>
+</html>

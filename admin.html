@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Centre — HTC Performance Review</title>
+<style>
+:root{
+  --color-background-primary:#ffffff;
+  --color-background-secondary:#f5f4f0;
+  --color-background-tertiary:#faf9f6;
+  --color-background-info:#e6f1fb;
+  --color-background-success:#eaf3de;
+  --color-background-warning:#faeeda;
+  --color-text-primary:#1a1a1a;
+  --color-text-secondary:#5f5e5a;
+  --color-text-tertiary:#888780;
+  --color-text-info:#0c447c;
+  --color-text-success:#27500a;
+  --color-text-warning:#633806;
+  --color-border-tertiary:rgba(0,0,0,0.12);
+  --color-border-info:#378ADD;
+  --radius-md:8px;
+  --radius-lg:12px;
+  --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --color-background-primary:#1e1e1c;
+    --color-background-secondary:#2a2a27;
+    --color-background-tertiary:#161615;
+    --color-background-info:#0c447c;
+    --color-background-success:#27500a;
+    --color-background-warning:#633806;
+    --color-text-primary:#f1efe8;
+    --color-text-secondary:#b4b2a9;
+    --color-text-tertiary:#888780;
+    --color-text-info:#b5d4f4;
+    --color-text-success:#c0dd97;
+    --color-text-warning:#fac775;
+    --color-border-tertiary:rgba(255,255,255,0.15);
+    --color-border-info:#85b7eb;
+  }
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--color-background-tertiary);color:var(--color-text-primary);font-family:var(--font-sans);padding:0 0 4rem;}
+nav{background:var(--color-background-primary);border-bottom:1px solid var(--color-border-tertiary);padding:0 1.25rem;}
+nav ul{display:flex;gap:0;list-style:none;margin:0;padding:0;max-width:960px;margin:0 auto;}
+nav a{display:block;padding:12px 14px;font-size:13px;color:var(--color-text-secondary);text-decoration:none;border-bottom:2px solid transparent;}
+nav a:hover{color:var(--color-text-primary);}
+nav a.active{color:var(--color-text-primary);font-weight:500;border-bottom-color:var(--color-text-primary);}
+.wrap{max-width:960px;margin:0 auto;padding:2rem 1.25rem 0;}
+.page-header{margin-bottom:2rem;}
+.page-header h1{font-size:21px;font-weight:600;margin:0 0 4px;}
+.page-header p{font-size:13px;color:var(--color-text-secondary);margin:0;}
+.section-label{font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:10px;margin-top:2rem;}
+.card{background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem;}
+.card h2{font-size:15px;font-weight:600;margin:0 0 4px;}
+.card p{font-size:13px;color:var(--color-text-secondary);margin:0 0 1rem;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;font-weight:500;color:var(--color-text-secondary);padding:6px 8px;border-bottom:1px solid var(--color-border-tertiary);}
+td{padding:8px 8px;border-bottom:1px solid var(--color-border-tertiary);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+.form-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;}
+.form-row label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--color-text-secondary);}
+.form-row input,.form-row select{font-family:inherit;font-size:13px;border:1px solid var(--color-border-tertiary);border-radius:var(--radius-md);padding:7px 10px;background:var(--color-background-primary);color:var(--color-text-primary);}
+.form-row input:focus,.form-row select:focus{outline:2px solid var(--color-border-info);outline-offset:1px;}
+button{font-family:inherit;font-size:13px;background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:var(--radius-md);padding:7px 12px;cursor:pointer;color:var(--color-text-primary);}
+button:hover{background:var(--color-background-secondary);}
+button:active{transform:scale(0.98);}
+button.primary{background:var(--color-text-primary);color:var(--color-background-primary);border-color:var(--color-text-primary);}
+button.primary:hover{opacity:0.85;}
+button.danger{color:var(--color-text-warning);}
+button.danger:hover{background:var(--color-background-warning);}
+.badge{display:inline-flex;align-items:center;font-size:12px;font-weight:500;padding:2px 8px;border-radius:var(--radius-md);white-space:nowrap;}
+.badge-open{background:var(--color-background-success);color:var(--color-text-success);}
+.badge-closed{background:var(--color-background-secondary);color:var(--color-text-secondary);}
+.badge-employee{background:var(--color-background-secondary);color:var(--color-text-secondary);}
+.badge-manager{background:var(--color-background-info);color:var(--color-text-info);}
+.badge-executive{background:var(--color-background-warning);color:var(--color-text-warning);}
+.msg{font-size:13px;margin-top:8px;color:var(--color-text-success);}
+.msg.err{color:var(--color-text-warning);}
+select.inline{font-family:inherit;font-size:12px;border:1px solid var(--color-border-tertiary);border-radius:var(--radius-md);padding:4px 8px;background:var(--color-background-primary);color:var(--color-text-primary);}
+</style>
+</head>
+<body>
+<nav>
+  <ul>
+    <li><a href="index.html">Dashboard</a></li>
+    <li><a href="dashboard.html">Reviews</a></li>
+    <li><a href="form.html">My review</a></li>
+    <li><a href="admin.html" class="active">Admin</a></li>
+  </ul>
+</nav>
+<div class="wrap">
+  <div class="page-header">
+    <h1>Admin centre</h1>
+    <p>Manage team members, roles, and review cycles.</p>
+  </div>
+
+  <div class="section-label">Review cycles</div>
+  <div class="card">
+    <h2>Review cycles</h2>
+    <p>Create and manage review periods. Open a cycle to allow form submissions.</p>
+    <div id="cycles-table-wrap"><p style="color:var(--color-text-tertiary);font-size:13px;">Loading…</p></div>
+    <div class="section-label" style="margin-top:1.25rem;">Create new cycle</div>
+    <div class="form-row">
+      <label>Cycle name<input id="cycle-name" type="text" placeholder="e.g. 2026 Annual Review"></label>
+      <label>Start date<input id="cycle-start" type="date"></label>
+      <label>End date<input id="cycle-end" type="date"></label>
+      <button class="primary" id="create-cycle-btn" style="align-self:flex-end;">Create cycle</button>
+    </div>
+    <div id="cycle-msg" class="msg" style="display:none;"></div>
+  </div>
+
+  <div class="section-label">Team members</div>
+  <div class="card">
+    <h2>Team members</h2>
+    <p>Change roles or remove users. Removing a user revokes their access.</p>
+    <div id="users-table-wrap"><p style="color:var(--color-text-tertiary);font-size:13px;">Loading…</p></div>
+    <div id="users-msg" class="msg" style="display:none;"></div>
+  </div>
+
+  <div class="section-label">Invite a team member</div>
+  <div class="card">
+    <h2>Send invitation</h2>
+    <p>An email will be sent with a sign-in link. Their role determines what they can see.</p>
+    <div class="form-row">
+      <label>Email address<input id="invite-email" type="email" placeholder="name@htcfoods.com"></label>
+      <label>Role
+        <select id="invite-role">
+          <option value="employee">Employee</option>
+          <option value="manager">Manager</option>
+          <option value="executive">Executive</option>
+        </select>
+      </label>
+      <button class="primary" id="invite-btn" style="align-self:flex-end;">Send invite</button>
+    </div>
+    <div id="invite-msg" class="msg" style="display:none;"></div>
+  </div>
+</div>
+
+<script type="module">
+import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
+const sb = createClient('https://nibvlmriymjlauzklnbh.supabase.co','sb_publishable_-OLUMh-8YwntFR4xl6GFUA_wKHP-oW0');
+
+const {data:{session}} = await sb.auth.getSession();
+if(!session){
+  document.body.innerHTML = '<main style="max-width:520px;margin:10vh auto;padding:1.25rem;font-family:system-ui"><h1>HTC Performance Review</h1><p>Sign in to continue.</p><div style="display:flex;flex-direction:column;gap:8px"><input id="e" placeholder="Email" type="email" style="padding:8px;border:1px solid #ccc;border-radius:6px"><input id="p" placeholder="Password" type="password" style="padding:8px;border:1px solid #ccc;border-radius:6px"><button id="in" style="padding:8px;cursor:pointer">Sign in</button><p id="m" style="color:red;margin:0"></p></div></main>';
+  document.querySelector('#in').onclick = async () => {
+    const r = await sb.auth.signInWithPassword({email:e.value,password:p.value});
+    m.textContent = r.error ? r.error.message : 'Signed in. Reloading…';
+    if(!r.error) location.reload();
+  };
+  throw new Error('not signed in');
+}
+
+const {data:me} = await sb.from('profiles').select('role').eq('id',session.user.id).single();
+if(me?.role !== 'executive'){
+  document.querySelector('.wrap').innerHTML = '<p style="margin-top:2rem;color:var(--color-text-secondary)">Admin centre is only accessible to executives.</p>';
+  throw new Error('not executive');
+}
+
+function roleBadge(r){
+  return `<span class="badge badge-${r}">${r}</span>`;
+}
+
+// --- Cycles ---
+async function loadCycles(){
+  const {data,error} = await sb.from('review_cycles').select('*').order('created_at',{ascending:false});
+  const wrap = document.getElementById('cycles-table-wrap');
+  if(error){wrap.innerHTML=`<p class="msg err">${error.message}</p>`;return;}
+  if(!data.length){wrap.innerHTML='<p style="font-size:13px;color:var(--color-text-tertiary)">No cycles yet. Create one below.</p>';return;}
+  wrap.innerHTML = `<table>
+    <thead><tr><th>Name</th><th>Start</th><th>End</th><th>Status</th><th></th></tr></thead>
+    <tbody>${data.map(c=>`<tr>
+      <td>${c.name}</td>
+      <td>${c.start_date||'—'}</td>
+      <td>${c.end_date||'—'}</td>
+      <td><span class="badge ${c.status==='open'?'badge-open':'badge-closed'}">${c.status==='open'?'Open':'Closed'}</span></td>
+      <td style="text-align:right;display:flex;gap:6px;justify-content:flex-end;">
+        ${c.status==='open'
+          ? `<button data-cycle-close="${c.id}">Close</button>`
+          : `<button data-cycle-open="${c.id}">Open</button>`}
+        <button class="danger" data-cycle-delete="${c.id}">Delete</button>
+      </td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+document.getElementById('create-cycle-btn').onclick = async () => {
+  const name = document.getElementById('cycle-name').value.trim();
+  const start = document.getElementById('cycle-start').value;
+  const end = document.getElementById('cycle-end').value;
+  const msg = document.getElementById('cycle-msg');
+  if(!name){showMsg(msg,'Please enter a cycle name.','err');return;}
+  const {error} = await sb.from('review_cycles').insert({name,start_date:start||null,end_date:end||null,status:'closed'});
+  if(error){showMsg(msg,error.message,'err');}
+  else{showMsg(msg,'Cycle created.');document.getElementById('cycle-name').value='';document.getElementById('cycle-start').value='';document.getElementById('cycle-end').value='';loadCycles();}
+};
+
+document.getElementById('cycles-table-wrap').addEventListener('click', async e => {
+  const openBtn = e.target.closest('[data-cycle-open]');
+  const closeBtn = e.target.closest('[data-cycle-close]');
+  const delBtn = e.target.closest('[data-cycle-delete]');
+  const msg = document.getElementById('cycle-msg');
+  if(openBtn){
+    const {error} = await sb.from('review_cycles').update({status:'open'}).eq('id',openBtn.dataset.cycleOpen);
+    if(error) showMsg(msg,error.message,'err'); else {showMsg(msg,'Cycle opened.');loadCycles();}
+  }
+  if(closeBtn){
+    const {error} = await sb.from('review_cycles').update({status:'closed'}).eq('id',closeBtn.dataset.cycleClose);
+    if(error) showMsg(msg,error.message,'err'); else {showMsg(msg,'Cycle closed.');loadCycles();}
+  }
+  if(delBtn){
+    if(!confirm('Delete this cycle? This cannot be undone.')) return;
+    const {error} = await sb.from('review_cycles').delete().eq('id',delBtn.dataset.cycleDelete);
+    if(error) showMsg(msg,error.message,'err'); else {showMsg(msg,'Cycle deleted.');loadCycles();}
+  }
+});
+
+// --- Users ---
+async function loadUsers(){
+  const {data,error} = await sb.from('profiles').select('id,email,role').order('email');
+  const wrap = document.getElementById('users-table-wrap');
+  if(error){wrap.innerHTML=`<p class="msg err">${error.message}</p>`;return;}
+  if(!data.length){wrap.innerHTML='<p style="font-size:13px;color:var(--color-text-tertiary)">No users found.</p>';return;}
+  wrap.innerHTML = `<table>
+    <thead><tr><th>Email</th><th>Role</th><th></th></tr></thead>
+    <tbody>${data.map(u=>`<tr>
+      <td>${u.email||u.id}</td>
+      <td>
+        <select class="inline" data-user-role="${u.id}">
+          <option value="employee" ${u.role==='employee'?'selected':''}>Employee</option>
+          <option value="manager" ${u.role==='manager'?'selected':''}>Manager</option>
+          <option value="executive" ${u.role==='executive'?'selected':''}>Executive</option>
+        </select>
+      </td>
+      <td style="text-align:right"><button class="danger" data-user-remove="${u.id}" data-user-email="${u.email||u.id}">Remove</button></td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+document.getElementById('users-table-wrap').addEventListener('change', async e => {
+  const sel = e.target.closest('[data-user-role]');
+  if(!sel) return;
+  const msg = document.getElementById('users-msg');
+  const {error} = await sb.from('profiles').update({role:sel.value}).eq('id',sel.dataset.userRole);
+  if(error) showMsg(msg,error.message,'err'); else showMsg(msg,'Role updated.');
+});
+
+document.getElementById('users-table-wrap').addEventListener('click', async e => {
+  const btn = e.target.closest('[data-user-remove]');
+  if(!btn) return;
+  const email = btn.dataset.userEmail;
+  if(!confirm(`Remove ${email}? They will lose access immediately.`)) return;
+  const msg = document.getElementById('users-msg');
+  const r = await fetch('/api/admin', {
+    method:'POST',
+    headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},
+    body:JSON.stringify({action:'remove',userId:btn.dataset.userRemove})
+  });
+  const d = await r.json();
+  if(d.ok){showMsg(msg,'User removed.');loadUsers();}
+  else showMsg(msg,d.error||'Could not remove user.','err');
+});
+
+// --- Invite ---
+document.getElementById('invite-btn').onclick = async () => {
+  const email = document.getElementById('invite-email').value.trim();
+  const role = document.getElementById('invite-role').value;
+  const msg = document.getElementById('invite-msg');
+  if(!email){showMsg(msg,'Please enter an email address.','err');return;}
+  const r = await fetch('/api/admin',{
+    method:'POST',
+    headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},
+    body:JSON.stringify({email,role})
+  });
+  const d = await r.json();
+  if(d.ok){showMsg(msg,'Invitation sent to '+email+'.');document.getElementById('invite-email').value='';}
+  else showMsg(msg,d.error||'Could not send invite.','err');
+};
+
+function showMsg(el,text,type=''){
+  el.textContent = text;
+  el.className = 'msg' + (type==='err'?' err':'');
+  el.style.display = 'block';
+  setTimeout(()=>{el.style.display='none';},4000);
+}
+
+loadCycles();
+loadUsers();
+</script>
+</body>
+</html>
