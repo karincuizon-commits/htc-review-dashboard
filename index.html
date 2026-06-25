@@ -321,19 +321,20 @@ select.filter{font-family:inherit;font-size:12px;border:1px solid var(--color-bo
     </div>
   </div>
 
-  <!-- Manager review (shown for managers/executives) -->
-  <div id="manager-section" class="wrap-wide" style="display:none;">
+  <!-- Manager review (shown for managers/executives, below self-review) -->
+  <div id="manager-section" class="wrap-wide" style="display:none;padding-top:0;">
+    <hr style="border:none;border-top:1px solid var(--color-border-tertiary);margin:2rem 0;">
     <div class="page-header">
-      <h1>Manager review</h1>
-      <p>Complete your assessment for each team member.</p>
+      <h1>Review your team</h1>
+      <p>Select a team member to fill in your manager assessment.</p>
     </div>
-    <div style="display:grid;grid-template-columns:260px 1fr;gap:1rem;align-items:start;" id="manager-grid">
+    <div style="display:grid;grid-template-columns:260px 1fr;gap:1.5rem;align-items:start;">
       <div>
         <div class="section-label" style="margin-top:0;">Team members</div>
-        <div id="manager-emp-list"><p style="font-size:13px;color:var(--color-text-tertiary);">Loading team…</p></div>
+        <div id="manager-emp-list"><p style="font-size:13px;color:var(--color-text-tertiary);">Loading…</p></div>
       </div>
       <div id="manager-form-area">
-        <p style="font-size:13px;color:var(--color-text-tertiary);margin-top:0;">Select a team member to begin their assessment.</p>
+        <p style="font-size:13px;color:var(--color-text-tertiary);margin-top:0;">Select a team member to begin.</p>
       </div>
     </div>
   </div>
@@ -524,17 +525,14 @@ async function boot(){
 
 // ── Nav ──────────────────────────────────────────────────────────────────────
 function setupNav(role){
+  // Self-review form is visible for everyone
   if(role === 'employee'){
     document.getElementById('nav-home').style.display = 'none';
     document.getElementById('nav-reviews').style.display = 'none';
     document.getElementById('nav-admin').style.display = 'none';
-    // show employee form, hide manager form
-    document.getElementById('employee-section').style.display = '';
-    document.getElementById('manager-section').style.display = 'none';
   } else {
-    // manager or executive: show manager form, hide employee self-review
-    document.getElementById('employee-section').style.display = 'none';
-    document.getElementById('manager-section').style.display = '';
+    // Managers and executives also see the team review section
+    document.getElementById('manager-section').style.display = 'block';
     if(role !== 'executive'){
       document.getElementById('nav-admin').style.display = 'none';
     }
